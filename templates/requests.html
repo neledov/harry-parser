@@ -1,0 +1,21 @@
+<!-- templates/requests.html -->
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+{% block content %}
+<div id="main-content">
+    <div class="left-panel">
+        <input type="text" id="search" placeholder="Search URLs..." aria-label="Search URLs">
+        <ul id="request-list">
+            {% for entry in entries %}
+                {{ macros.render_request_item(loop.index0, entry) }}
+            {% endfor %}
+        </ul>
+    </div>
+    <div class="right-panel">
+        <div id="request-detail" data-filename="{{ filename }}">
+            <h2>Request Details</h2>
+            <p>Select a request to see details.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

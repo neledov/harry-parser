@@ -1,0 +1,23 @@
+<!-- templates/macros.html -->
+{% macro render_request_item(index, entry) %}
+    {% set has_response = entry.response and entry.response.status %}
+    <li data-index="{{ index }}" 
+        class="
+            {% if has_response %}
+                status-{{ entry.response.status }}
+            {% else %}
+                status-no-response
+            {% endif %}
+        " 
+        tabindex="0"
+        role="button"
+        aria-pressed="false">
+        <div class="method">{{ entry.request.method }}</div>
+        <div class="url">{{ entry.request.url }}</div>
+        {% if has_response %}
+            <div class="status">Status: {{ entry.response.status }}</div>
+        {% else %}
+            <div class="status">Status: No Response</div>
+        {% endif %}
+    </li>
+{% endmacro %}
