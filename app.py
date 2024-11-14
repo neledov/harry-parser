@@ -50,8 +50,6 @@ def upload_file():
 
 @app.route('/processing/<filename>')
 def processing(filename):
-    # Here you can add code to process the HAR file if needed
-    # For simplicity, we'll redirect to the requests page after processing
     return render_template('processing.html', app_name='HARRY', filename=filename)
 
 @app.route('/requests/<filename>')
