@@ -3,6 +3,15 @@
     {% set has_response = entry.response and entry.response.status %}
     {% set status_code = entry.response.status if has_response else 'No Status' %}
     {% set content_type = entry.response.content.mimeType if has_response and entry.response.content.mimeType else 'Unknown' %}
+    {% set method = entry.request.method %}
+    {% set method_class = method if method in ['GET', 'POST', 'PUT', 'DELETE'] else 'OTHER' %}
+    {% set status_category = (
+        'success' if status_code|int >= 200 and status_code|int < 300 else
+        'redirection' if status_code|int >= 300 and status_code|int < 400 else
+        'client-error' if status_code|int >= 400 and status_code|int < 500 else
+        'server-error' if status_code|int >= 500 else
+        'unknown'
+    ) %}
     <li data-index="{{ index }}" 
         data-status-code="{{ status_code }}"
         data-content-type="{{ content_type }}"
@@ -19,12 +28,12 @@
         tabindex="0"
         role="button"
         aria-pressed="false">
-        <div class="method">{{ entry.request.method }}</div>
-        <div class="url">{{ entry.request.url }}</div>
+        <div class="method {{ method_class }}">{{ method }}</div>
+        <div class="url" title="{{ entry.request.url }}">{{ entry.request.url }}</div>
         {% if has_response %}
-            <div class="status">Status: {{ entry.response.status }}</div>
+            <div class="status {{ status_category }}">Status: {{ status_code }}</div>
         {% else %}
-            <div class="status">Status: No Response</div>
+            <div class="status unknown">Status: No Response</div>
         {% endif %}
     </li>
 {% endmacro %}

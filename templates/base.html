@@ -4,10 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ app_name }}</title>
+    <!-- Custom Styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <!-- Include Prism.js Dark Theme (Tomorrow) via CDN -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
-    <!-- Include Font Awesome for Round Glasses Icon -->
+    <!-- Include Prism.js Dark Theme -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-okaidia.min.css" rel="stylesheet" />
+    <!-- Include Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
@@ -43,14 +44,11 @@
         {% endwith %}
         {% block content %}{% endblock %}
     </div>
-    <!-- Include Prism.js JS for syntax highlighting via CDN -->
+    <!-- Include Prism.js JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markup.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-json.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
-    <!-- Include Chart.js via CDN from allowed source (UMD Build) -->
+    <!-- Include Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.1.1/chart.umd.js"></script>
-    <!-- Include main JavaScript file once -->
+    <!-- Include main JavaScript file -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>
