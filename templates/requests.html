@@ -5,7 +5,45 @@
 {% block content %}
 <div id="main-content">
     <div class="left-panel">
-        <input type="text" id="search" placeholder="Search URLs..." aria-label="Search URLs">
+        <!-- Filtering Controls -->
+        <div class="filter-container">
+            <input type="text" id="search" placeholder="Search URLs..." aria-label="Search URLs">
+
+            <!-- HTTP Method Filter -->
+            <select id="method-filter" aria-label="Filter by HTTP Method">
+                <option value="">All Methods</option>
+                <option value="GET">GET</option>
+                <option value="POST">POST</option>
+                <option value="PUT">PUT</option>
+                <option value="DELETE">DELETE</option>
+                <!-- Add other methods as needed -->
+            </select>
+
+            <!-- Status Code Filter -->
+            <select id="status-filter" aria-label="Filter by Status Code">
+                <option value="">All Status Codes</option>
+                <option value="2">2xx Success</option>
+                <option value="3">3xx Redirection</option>
+                <option value="4">4xx Client Error</option>
+                <option value="5">5xx Server Error</option>
+            </select>
+
+            <!-- Content Type Filter -->
+            <select id="content-type-filter" aria-label="Filter by Content Type">
+                <option value="">All Content Types</option>
+                <option value="application/json">JSON</option>
+                <option value="text/html">HTML</option>
+                <option value="text/css">CSS</option>
+                <!-- Add other content types as needed -->
+            </select>
+
+            <!-- Error Only Toggle -->
+            <label for="error-only" class="error-only-label">
+                <input type="checkbox" id="error-only" aria-label="Show Errors Only">
+                Show Errors Only
+            </label>
+        </div>
+
         <ul id="request-list">
             {% for entry in entries %}
                 {{ macros.render_request_item(loop.index0, entry) }}
@@ -16,7 +54,6 @@
         <div id="request-detail" data-filename="{{ filename }}">
             <h2>Request Details</h2>
             <p>Select a request to see details.</p>
-
         </div>
     </div>
 </div>

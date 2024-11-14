@@ -133,7 +133,7 @@ input[type="submit"]:hover {
 }
 
 #search {
-    width: 100%;
+    width: 90%;
     padding: 8px;
     margin-bottom: 10px;
     border-radius: 4px;
@@ -178,6 +178,15 @@ input[type="submit"]:hover {
     color: #ff6e6e; /* Soft red text */
 }
 
+/* Highlight error requests */
+#request-list li.error-request {
+    border-left: 5px solid #ff5555; /* Soft red border */
+}
+
+#request-list li.error-request .status {
+    color: #ff5555; /* Soft red text */
+}
+
 /* Highlight on hover */
 #request-list li:hover {
     background-color: #4a4a4a;
@@ -198,6 +207,34 @@ input[type="submit"]:hover {
 .url {
     color: #a8a8a8; /* Dimmed gray */
     word-break: break-all;
+}
+
+/* Filtering Controls */
+.filter-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.filter-container select,
+.filter-container input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    background-color: #3a3a3a;
+    color: #ffffff;
+    border: 1px solid #555;
+    border-radius: 4px;
+}
+
+.filter-container label.error-only-label {
+    display: flex;
+    align-items: center;
+    color: #ffffff;
+}
+
+.filter-container input[type="checkbox"] {
+    margin-right: 5px;
 }
 
 /* Right Panel Styles */
@@ -297,6 +334,12 @@ input, select, button {
 input:focus, select:focus, button:focus {
     outline: none;
     border-color: #ffffff;
+}
+
+/* Focus styles for accessibility */
+.user-is-tabbing #request-list li:focus {
+    outline: 2px dashed #66d9ef; /* Faded blue */
+    outline-offset: 2px;
 }
 
 /* Prism.js Syntax Highlighting Overrides */

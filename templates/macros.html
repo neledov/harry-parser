@@ -1,10 +1,17 @@
 <!-- templates/macros.html -->
 {% macro render_request_item(index, entry) %}
     {% set has_response = entry.response and entry.response.status %}
+    {% set status_code = entry.response.status if has_response else 'No Status' %}
+    {% set content_type = entry.response.content.mimeType if has_response and entry.response.content.mimeType else 'Unknown' %}
     <li data-index="{{ index }}" 
+        data-status-code="{{ status_code }}"
+        data-content-type="{{ content_type }}"
         class="
             {% if has_response %}
                 status-{{ entry.response.status }}
+                {% if entry.response.status|int >= 400 %}
+                    error-request
+                {% endif %}
             {% else %}
                 status-no-response
             {% endif %}

@@ -46,13 +46,13 @@ def upload_file():
         else:
             flash('Invalid file type. Please upload a .har file.')
             return redirect(request.url)
-    return render_template('upload.html', app_name='HARry')
+    return render_template('upload.html', app_name='HARRY')
 
 @app.route('/processing/<filename>')
 def processing(filename):
     # Here you can add code to process the HAR file if needed
     # For simplicity, we'll redirect to the requests page after processing
-    return render_template('processing.html', app_name='HARry', filename=filename)
+    return render_template('processing.html', app_name='HARRY', filename=filename)
 
 @app.route('/requests/<filename>')
 def requests_page(filename):
@@ -64,7 +64,7 @@ def requests_page(filename):
         har_data = json.load(f)
     entries = har_data.get('log', {}).get('entries', [])
     logging.info(f"Loaded {len(entries)} entries from HAR file: {filename}")
-    return render_template('requests.html', app_name='HARry', entries=entries, filename=filename)
+    return render_template('requests.html', app_name='HARRY', entries=entries, filename=filename)
 
 @app.route('/request/<filename>/<int:index>')
 def get_request_detail(filename, index):

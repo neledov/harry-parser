@@ -1,3 +1,5 @@
+// static/js/main.js
+
 // Debounce function to limit the rate at which a function can fire.
 function debounce(func, delay) {
   let timeout;
@@ -7,17 +9,37 @@ function debounce(func, delay) {
   };
 }
 
-// Function to filter requests based on search input.
+// Function to filter requests based on search input and filters.
 function filterRequests() {
   const searchInput = document.getElementById("search").value.toLowerCase();
+  const methodFilter = document.getElementById("method-filter").value;
+  const statusFilter = document.getElementById("status-filter").value;
+  const contentTypeFilter = document.getElementById("content-type-filter").value;
+  const errorOnly = document.getElementById("error-only").checked;
   const listItems = document.querySelectorAll("#request-list li");
   let anyVisible = false;
 
   listItems.forEach((item) => {
     const urlElement = item.querySelector(".url");
-    if (!urlElement) return; // Skip if .url element not found
+    const methodElement = item.querySelector(".method");
+    const statusElement = item.querySelector(".status");
+    const contentType = item.getAttribute("data-content-type");
+    const statusCode = item.getAttribute("data-status-code");
+
+    if (!urlElement || !methodElement || !statusElement) return;
+
     const url = urlElement.textContent.toLowerCase();
-    if (url.includes(searchInput)) {
+    const method = methodElement.textContent;
+    const status = statusCode || "";
+    const hasError = status.startsWith("4") || status.startsWith("5");
+
+    let matchesSearch = url.includes(searchInput);
+    let matchesMethod = methodFilter ? method.includes(methodFilter) : true;
+    let matchesStatus = statusFilter ? status.startsWith(statusFilter) : true;
+    let matchesContentType = contentTypeFilter ? contentType.includes(contentTypeFilter) : true;
+    let matchesErrorOnly = errorOnly ? hasError : true;
+
+    if (matchesSearch && matchesMethod && matchesStatus && matchesContentType && matchesErrorOnly) {
       item.style.display = "";
       anyVisible = true;
     } else {
@@ -444,12 +466,13 @@ function loadRequestDetail(index) {
 
       // Populate request details with structured HTML and cURL button
       let html = `
-                                       <div class="section">
-                    <div class="chart-container">
-                        <canvas id="timelineChartCanvas"></canvas>
-                    </div> </div>
+                   <div class="section">
+                        <div class="chart-container">
+                            <canvas id="timelineChartCanvas"></canvas>
+                        </div>
+                    </div>
                     ${curlButtonHtml}   
-            </div>
+                </div>
                 <div class="section">
                     <h2>Request Details</h2>
                     <p><strong>Method:</strong> ${escapeHTML(
@@ -461,36 +484,26 @@ function loadRequestDetail(index) {
         data.request.url || "N/A"
       )}</a></p>
                 </div>
-                
-                
-                
                 <div class="section">
                     <h2>Response Details</h2>
                     <p><strong>Status:</strong> ${escapeHTML(
                       status
                     )} ${escapeHTML(statusText)}</p>
                 </div>
-                
                 <div class="section">
                     <h3>Request Headers</h3>
                     ${requestHeadersHtml}
                 </div>
-                
                 <div class="section">
                     <h3>Query Parameters</h3>
                     ${queryParamsHtml}
                 </div>
-                
                 ${postDataContent}
-                
                 <div class="section">
                     <h3>Response Headers</h3>
                     ${responseHeadersHtml}
                 </div>
-                
                 ${responseContent}
-                
-
             `;
 
       const detailDiv = document.getElementById("request-detail");
@@ -502,10 +515,6 @@ function loadRequestDetail(index) {
       Prism.highlightAll();
       console.log("Prism highlighting executed.");
 
-      // Hide spinner after content is loaded
-      //hideSpinner('request-detail');
-      console.log("Spinner hidden.");
-
       // Initialize the timeline chart with timings data
       initializeTimelineChart(timings);
       console.log("Timeline chart initialized.");
@@ -513,21 +522,12 @@ function loadRequestDetail(index) {
       // Attach copy event listeners
       attachCopyButtons();
       console.log("Copy buttons attached.");
-
-      // Attach event listener to the cURL button
-      const curlButton = document.getElementById("copy-curl");
-      if (curlButton) {
-        curlButton.addEventListener("click", () => {
-          copyToClipboard(curlCommand); // Decoded before copying
-        });
-      }
     })
     .catch((error) => {
       console.error("Error:", error);
       const detailDiv = document.getElementById("request-detail");
       detailDiv.innerHTML =
         '<p class="error">Error loading request details.</p>';
-      //hideSpinner('request-detail');
     });
 
   // Highlight the selected request
@@ -588,10 +588,32 @@ if (searchInput) {
   searchInput.addEventListener("keyup", debouncedFilter);
 }
 
+// Update the event listeners for filters
+const methodFilter = document.getElementById("method-filter");
+const statusFilter = document.getElementById("status-filter");
+const contentTypeFilter = document.getElementById("content-type-filter");
+const errorOnlyCheckbox = document.getElementById("error-only");
+
+if (methodFilter) {
+  methodFilter.addEventListener("change", filterRequests);
+}
+
+if (statusFilter) {
+  statusFilter.addEventListener("change", filterRequests);
+}
+
+if (contentTypeFilter) {
+  contentTypeFilter.addEventListener("change", filterRequests);
+}
+
+if (errorOnlyCheckbox) {
+  errorOnlyCheckbox.addEventListener("change", filterRequests);
+}
+
 // Initial attachment
 attachEventListeners();
 
-// If the request list can be dynamically updated (e.g., via search), observe changes and re-attach listeners
+// Observe changes in the request list to re-attach listeners if needed
 const requestList = document.getElementById("request-list");
 if (requestList) {
   const observer = new MutationObserver(() => {
@@ -601,6 +623,17 @@ if (requestList) {
   // Observe child list changes
   observer.observe(requestList, { childList: true, subtree: true });
 }
+
+// Handle focus styles for keyboard navigation
+document.addEventListener('keydown', function(event) {
+  if (event.key === 'Tab') {
+    document.body.classList.add('user-is-tabbing');
+  }
+});
+
+document.addEventListener('mousedown', function() {
+  document.body.classList.remove('user-is-tabbing');
+});
 
 // Handle redirection if on the processing page
 if (window.location.pathname.startsWith("/processing/")) {
