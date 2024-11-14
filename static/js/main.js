@@ -14,7 +14,9 @@ function filterRequests() {
   const searchInput = document.getElementById("search").value.toLowerCase();
   const methodFilter = document.getElementById("method-filter").value;
   const statusFilter = document.getElementById("status-filter").value;
-  const contentTypeFilter = document.getElementById("content-type-filter").value;
+  const contentTypeFilter = document.getElementById(
+    "content-type-filter"
+  ).value;
   const errorOnly = document.getElementById("error-only").checked;
   const listItems = document.querySelectorAll("#request-list li");
   let anyVisible = false;
@@ -36,10 +38,18 @@ function filterRequests() {
     let matchesSearch = url.includes(searchInput);
     let matchesMethod = methodFilter ? method.includes(methodFilter) : true;
     let matchesStatus = statusFilter ? status.startsWith(statusFilter) : true;
-    let matchesContentType = contentTypeFilter ? contentType.includes(contentTypeFilter) : true;
+    let matchesContentType = contentTypeFilter
+      ? contentType.includes(contentTypeFilter)
+      : true;
     let matchesErrorOnly = errorOnly ? hasError : true;
 
-    if (matchesSearch && matchesMethod && matchesStatus && matchesContentType && matchesErrorOnly) {
+    if (
+      matchesSearch &&
+      matchesMethod &&
+      matchesStatus &&
+      matchesContentType &&
+      matchesErrorOnly
+    ) {
       item.style.display = "";
       anyVisible = true;
     } else {
@@ -87,8 +97,7 @@ function escapeHTML(str) {
     return charsToReplace[tag] || tag;
   });
 }
-
-// Function to copy text to clipboard
+// Function to copy text to clipboard and show a temporary message
 function copyToClipboard(text) {
   const tempTextarea = document.createElement("textarea");
   tempTextarea.value = decodeURIComponent(text);
@@ -96,8 +105,30 @@ function copyToClipboard(text) {
   tempTextarea.select();
   document.execCommand("copy");
   document.body.removeChild(tempTextarea);
-  alert("Copied to clipboard!");
+
+  // Create a temporary message element
+  const message = document.createElement("div");
+  message.className = "copy-message";
+  message.textContent = "Copied to clipboard!";
+  document.body.appendChild(message);
+
+  // Position the message near the bottom center
+  message.style.position = "fixed";
+  message.style.bottom = "20px";
+  message.style.left = "50%";
+  message.style.transform = "translateX(-50%)";
+  message.style.backgroundColor = "#333";
+  message.style.color = "#fff";
+  message.style.padding = "10px 20px";
+  message.style.borderRadius = "5px";
+  message.style.zIndex = "1000";
+
+  // Remove the message after 2 seconds
+  setTimeout(() => {
+    document.body.removeChild(message);
+  }, 2000);
 }
+
 
 // Function to show spinner
 function showSpinner(elementId) {
@@ -316,7 +347,7 @@ function loadRequestDetail(index) {
         console.error("Error in fetched data:", data.error);
         const detailDiv = document.getElementById("request-detail");
         detailDiv.innerHTML = `<p class="error">${escapeHTML(data.error)}</p>`;
-        hideSpinner("request-detail");
+        //hideSpinner("request-detail");
         return;
       }
 
@@ -456,13 +487,15 @@ function loadRequestDetail(index) {
 
       // Generate cURL button HTML
       const curlButtonHtml = `
-                <div class="section">
-                    <button id="copy-curl" class="curl-button" aria-label="Copy cURL Command">Copy cURL</button>
-                    <pre><code class="language-bash">${escapeHTML(
-                      curlCommand
-                    )}</code></pre>
-                </div>
-            `;
+      <div class="section">
+          <button class="copy-button curl-button" data-text="${encodeURIComponent(
+            curlCommand
+          )}" aria-label="Copy cURL Command">Copy cURL</button>
+          <pre><code class="language-bash">${escapeHTML(
+            curlCommand
+          )}</code></pre>
+      </div>
+  `;
 
       // Populate request details with structured HTML and cURL button
       let html = `
@@ -522,12 +555,16 @@ function loadRequestDetail(index) {
       // Attach copy event listeners
       attachCopyButtons();
       console.log("Copy buttons attached.");
+
+      // Hide spinner after content is loaded
+      //hideSpinner("request-detail");
     })
     .catch((error) => {
       console.error("Error:", error);
       const detailDiv = document.getElementById("request-detail");
       detailDiv.innerHTML =
         '<p class="error">Error loading request details.</p>';
+      //hideSpinner("request-detail");
     });
 
   // Highlight the selected request
@@ -561,21 +598,28 @@ function redirectToRequests(filename) {
   }, 2000);
 }
 
-// Attach event listeners to list items
-function attachEventListeners() {
-  const listItems = document.querySelectorAll("#request-list li");
-  listItems.forEach((item) => {
-    const index = item.getAttribute("data-index");
-
-    // Click Event
-    item.addEventListener("click", () => {
+// Attach event listeners using event delegation
+const requestList = document.getElementById("request-list");
+if (requestList) {
+  // Click Event Delegation
+  requestList.addEventListener("click", (event) => {
+    const item = event.target.closest("li[data-index]");
+    if (item && requestList.contains(item)) {
+      const index = item.getAttribute("data-index");
       loadRequestDetail(index);
-    });
+    }
+  });
 
-    // Keypress Event for Accessibility
-    item.addEventListener("keypress", (event) => {
-      handleKeyPress(event, () => loadRequestDetail(index));
-    });
+  // Keypress Event Delegation for Accessibility
+  requestList.addEventListener("keypress", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      const item = event.target.closest("li[data-index]");
+      if (item && requestList.contains(item)) {
+        event.preventDefault();
+        const index = item.getAttribute("data-index");
+        loadRequestDetail(index);
+      }
+    }
   });
 }
 
@@ -610,29 +654,15 @@ if (errorOnlyCheckbox) {
   errorOnlyCheckbox.addEventListener("change", filterRequests);
 }
 
-// Initial attachment
-attachEventListeners();
-
-// Observe changes in the request list to re-attach listeners if needed
-const requestList = document.getElementById("request-list");
-if (requestList) {
-  const observer = new MutationObserver(() => {
-    attachEventListeners();
-  });
-
-  // Observe child list changes
-  observer.observe(requestList, { childList: true, subtree: true });
-}
-
 // Handle focus styles for keyboard navigation
-document.addEventListener('keydown', function(event) {
-  if (event.key === 'Tab') {
-    document.body.classList.add('user-is-tabbing');
+document.addEventListener("keydown", function (event) {
+  if (event.key === "Tab") {
+    document.body.classList.add("user-is-tabbing");
   }
 });
 
-document.addEventListener('mousedown', function() {
-  document.body.classList.remove('user-is-tabbing');
+document.addEventListener("mousedown", function () {
+  document.body.classList.remove("user-is-tabbing");
 });
 
 // Handle redirection if on the processing page
