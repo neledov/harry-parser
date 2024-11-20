@@ -158,26 +158,17 @@ function formatJSON(jsonString) {
 }
 
 // Function to generate cURL command from request data
-function generateCurlCommand(data) {
-  const method = data.request.method || "GET";
-  const url = data.request.url || "";
-  let curl = `curl -X ${method} `;
-
-  // Add headers
-  if (data.request.headers && Array.isArray(data.request.headers)) {
-    data.request.headers.forEach((header) => {
-      curl += `-H "${header.name}: ${header.value}" `;
-    });
+function generateCurlCommand(entry) {
+  let command = `curl -X ${entry.request.method} "${entry.request.url}"`;
+  
+  // For POST, PUT, PATCH methods, include data if present
+  const methodsWithBody = ['POST', 'PUT', 'PATCH'];
+  if (methodsWithBody.includes(entry.request.method.toUpperCase()) && entry.request.postData && entry.request.postData.text) {
+      const data = entry.request.postData.text.replace(/"/g, '\\"');
+      command += ` -d "${data}"`;
   }
-
-  // Add data if present
-  if (data.request.postData && data.request.postData.text) {
-    const postData = data.request.postData.text.replace(/"/g, '\\"'); // Escape double quotes
-    curl += `-d "${postData}" `;
-  }
-
-  curl += `"${url}"`;
-  return curl;
+  
+  return command;
 }
 
 // Helper function to assign colors to each phase
