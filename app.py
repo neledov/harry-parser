@@ -1,13 +1,27 @@
 # app.py
 
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from models import db, User, HARFile
 import os
 import json
 from werkzeug.utils import secure_filename
 import logging
+from datetime import datetime
+from pathlib import Path
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'your_default_secret_key')  # Use environment variable
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_default_secret_key')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///harry.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['UPLOAD_FOLDER'] = 'uploads'
+ALLOWED_EXTENSIONS = {'har'}
+
+# Initialize extensions
+db.init_app(app)
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
 
 # Configure logging
 if not os.path.exists('logs'):
@@ -15,67 +29,153 @@ if not os.path.exists('logs'):
 logging.basicConfig(filename='logs/harry_parser.log', level=logging.INFO,
                     format='%(asctime)s %(levelname)s:%(message)s')
 
-UPLOAD_FOLDER = 'uploads'
-ALLOWED_EXTENSIONS = {'har'}
-
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
 
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('upload_file'))
+    
+    if request.method == 'POST':
+        user = User.query.filter_by(username=request.form['username']).first()
+        if user and user.check_password(request.form['password']):
+            login_user(user)
+            next_page = request.args.get('next')
+            return redirect(next_page if next_page else url_for('upload_file'))
+        flash('Invalid username or password')
+    return render_template('login.html', app_name='HARRY')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('upload_file'))
+    
+    if request.method == 'POST':
+        if User.query.filter_by(username=request.form['username']).first():
+            flash('Username already exists')
+            return redirect(url_for('register'))
+        
+        if User.query.filter_by(email=request.form['email']).first():
+            flash('Email already registered')
+            return redirect(url_for('register'))
+        
+        user = User(username=request.form['username'], email=request.form['email'])
+        user.set_password(request.form['password'])
+        db.session.add(user)
+        db.session.commit()
+        flash('Registration successful')
+        return redirect(url_for('login'))
+    return render_template('register.html', app_name='HARRY')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+def get_user_files(user_id):
+    return HARFile.query.filter_by(user_id=user_id).all()
 
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def upload_file():
     if request.method == 'POST':
-        # Check if the post request has the file part
         if 'harfile' not in request.files:
             flash('No file part')
             return redirect(request.url)
+            
         file = request.files['harfile']
-        # If user does not select file, browser may submit an empty part without filename
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
+            
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+            
+            # Create user-specific directory
+            user_upload_dir = current_user.get_user_upload_folder()
+            Path(user_upload_dir).mkdir(parents=True, exist_ok=True)
+            
+            # Save file in user's directory
+            filepath = os.path.join(user_upload_dir, filename)
             file.save(filepath)
-            logging.info(f"Uploaded HAR file: {filename}")
+            
+            # Create database record
+            har_file = HARFile(
+                filename=filename,
+                user_id=current_user.id
+            )
+            db.session.add(har_file)
+            db.session.commit()
+            
+            logging.info(f"User {current_user.username} uploaded HAR file: {filename}")
             return redirect(url_for('processing', filename=filename))
-        else:
-            flash('Invalid file type. Please upload a .har file.')
-            return redirect(request.url)
-    return render_template('upload.html', app_name='HARRY')
+            
+        flash('Invalid file type. Please upload a .har file.')
+        return redirect(request.url)
+        
+    # Get user's files for display
+    user_files = get_user_files(current_user.id)
+    return render_template('upload.html', app_name='HARRY', files=user_files)
 
 @app.route('/processing/<filename>')
+@login_required
 def processing(filename):
     return render_template('processing.html', app_name='HARRY', filename=filename)
 
 @app.route('/requests/<filename>')
+@login_required
 def requests_page(filename):
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    # Verify file ownership
+    har_file = HARFile.query.filter_by(
+        filename=filename,
+        user_id=current_user.id
+    ).first()
+    
+    if not har_file:
+        flash('File not found or access denied.')
+        return redirect(url_for('upload_file'))
+        
+    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
     if not os.path.exists(filepath):
         flash('File not found.')
         return redirect(url_for('upload_file'))
+        
     with open(filepath, 'r', encoding='utf-8') as f:
         har_data = json.load(f)
     entries = har_data.get('log', {}).get('entries', [])
-    logging.info(f"Loaded {len(entries)} entries from HAR file: {filename}")
-    return render_template('requests.html', app_name='HARRY', entries=entries, filename=filename)
+    return render_template('requests.html', 
+                         app_name='HARRY', 
+                         entries=entries, 
+                         filename=filename)
 
 @app.route('/request/<filename>/<int:index>')
+@login_required
 def get_request_detail(filename, index):
-    filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    # Verify file ownership
+    har_file = HARFile.query.filter_by(
+        filename=filename,
+        user_id=current_user.id
+    ).first()
+    
+    if not har_file:
+        return jsonify({'error': 'File not found or access denied.'}), 403
+        
+    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
     if not os.path.exists(filepath):
         return jsonify({'error': 'File not found.'}), 404
+        
     with open(filepath, 'r', encoding='utf-8') as f:
         har_data = json.load(f)
     entries = har_data.get('log', {}).get('entries', [])
     if index < 0 or index >= len(entries):
         return jsonify({'error': 'Invalid request index.'}), 400
     entry = entries[index]
-    # Extract relevant data
     request_data = {
         'method': entry['request']['method'],
         'url': entry['request']['url'],
@@ -90,7 +190,7 @@ def get_request_detail(filename, index):
         'content': entry['response'].get('content', {})
     }
     timings = entry.get('timings', {})
-    logging.info(f"Fetched details for request index {index} in file {filename}")
+    logging.info(f"User {current_user.username} fetched details for request index {index} in file {filename}")
     return jsonify({
         'request': request_data,
         'response': response_data,
@@ -98,7 +198,6 @@ def get_request_detail(filename, index):
     })
 
 if __name__ == '__main__':
-    # Ensure the upload and logs directories exist
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs('logs', exist_ok=True)
     app.run(debug=True)

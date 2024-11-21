@@ -7,5 +7,21 @@
         <input type="file" name="harfile" accept=".har" aria-label="Upload HAR File" required>
         <input type="submit" value="Upload">
     </form>
+    
+    {% if files %}
+    <div class="files-list">
+        <h3>Your Files</h3>
+        <ul>
+            {% for file in files %}
+            <li>
+                <a href="{{ url_for('requests_page', filename=file.filename) }}">
+                    {{ file.filename }}
+                </a>
+                <span class="upload-date">{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
