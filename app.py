@@ -17,13 +17,11 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 ALLOWED_EXTENSIONS = {'har'}
 
-# Initialize extensions
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-# Configure logging
 if not os.path.exists('logs'):
     os.makedirs('logs')
 logging.basicConfig(filename='logs/harry_parser.log', level=logging.INFO,
@@ -35,6 +33,9 @@ def load_user(user_id):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def get_user_files(user_id):
+    return HARFile.query.filter_by(user_id=user_id).all()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -78,9 +79,6 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
-def get_user_files(user_id):
-    return HARFile.query.filter_by(user_id=user_id).all()
-
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def upload_file():
@@ -97,15 +95,12 @@ def upload_file():
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             
-            # Create user-specific directory
             user_upload_dir = current_user.get_user_upload_folder()
             Path(user_upload_dir).mkdir(parents=True, exist_ok=True)
             
-            # Save file in user's directory
             filepath = os.path.join(user_upload_dir, filename)
             file.save(filepath)
             
-            # Create database record
             har_file = HARFile(
                 filename=filename,
                 user_id=current_user.id
@@ -119,9 +114,32 @@ def upload_file():
         flash('Invalid file type. Please upload a .har file.')
         return redirect(request.url)
         
-    # Get user's files for display
     user_files = get_user_files(current_user.id)
     return render_template('upload.html', app_name='HARRY', files=user_files)
+
+@app.route('/delete/<filename>', methods=['DELETE'])
+@login_required
+def delete_file(filename):
+    har_file = HARFile.query.filter_by(
+        filename=filename,
+        user_id=current_user.id
+    ).first()
+    
+    if not har_file:
+        return jsonify({'success': False, 'error': 'File not found or access denied'}), 403
+        
+    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
+    
+    try:
+        if os.path.exists(filepath):
+            os.remove(filepath)
+        db.session.delete(har_file)
+        db.session.commit()
+        logging.info(f"User {current_user.username} deleted file: {filename}")
+        return jsonify({'success': True})
+    except Exception as e:
+        logging.error(f"Error deleting file {filename}: {str(e)}")
+        return jsonify({'success': False, 'error': 'Error deleting file'}), 500
 
 @app.route('/processing/<filename>')
 @login_required
@@ -131,7 +149,6 @@ def processing(filename):
 @app.route('/requests/<filename>')
 @login_required
 def requests_page(filename):
-    # Verify file ownership
     har_file = HARFile.query.filter_by(
         filename=filename,
         user_id=current_user.id
@@ -157,7 +174,6 @@ def requests_page(filename):
 @app.route('/request/<filename>/<int:index>')
 @login_required
 def get_request_detail(filename, index):
-    # Verify file ownership
     har_file = HARFile.query.filter_by(
         filename=filename,
         user_id=current_user.id

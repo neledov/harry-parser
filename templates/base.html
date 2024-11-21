@@ -31,6 +31,14 @@
                 {% endif %}
             </h1>
         </div>
+        {% if current_user.is_authenticated %}
+        <div class="header-right">
+            <span class="username">{{ current_user.username }}</span>
+            <a href="{{ url_for('logout') }}" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+        </div>
+        {% endif %}
     </header>
     <div class="container">
         {% with messages = get_flashed_messages() %}
@@ -48,7 +56,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <!-- Include Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.1.1/chart.umd.js"></script>
-    <!-- Include main JavaScript file -->
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <!-- In the head section -->
+    <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

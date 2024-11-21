@@ -544,3 +544,38 @@ input:focus, select:focus, button:focus {
      font-size: 0.9em;
  }
  
+ .header-right {
+     margin-left: auto;
+     display: flex;
+     align-items: center;
+     gap: 20px;
+ }
+ 
+ .username {
+     color: #89CFF0;
+     font-weight: bold;
+ }
+ 
+ .logout-btn {
+     color: #CCCCCC;
+     text-decoration: none;
+     display: flex;
+     align-items: center;
+     gap: 5px;
+     transition: color 0.3s ease;
+ }
+ 
+ .logout-btn:hover {
+     color: #89CFF0;
+ }
+ 
+ .delete-btn {
+     color: #FF6961;
+     cursor: pointer;
+     transition: color 0.3s ease;
+ }
+ 
+ .delete-btn:hover {
+     color: #ff4444;
+ }
+ 

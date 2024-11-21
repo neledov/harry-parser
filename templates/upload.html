@@ -11,17 +11,21 @@
     {% if files %}
     <div class="files-list">
         <h3>Your Files</h3>
-        <ul>
+        <ul id="files-list">
             {% for file in files %}
             <li>
                 <a href="{{ url_for('requests_page', filename=file.filename) }}">
                     {{ file.filename }}
                 </a>
-                <span class="upload-date">{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                <div class="file-actions">
+                    <span class="upload-date">{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                    <i class="fas fa-trash delete-btn" 
+                   data-filename="{{ file.filename }}"
+                   title="Delete file"></i>
+                </div>
             </li>
             {% endfor %}
         </ul>
     </div>
-    {% endif %}
-</div>
+    {% endif %}</div>
 {% endblock %}
