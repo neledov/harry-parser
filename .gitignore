@@ -9,6 +9,7 @@ ENV/
 env/
 .venv/
 .instance/
+*.db
 # Logs
 logs/
 *.log
