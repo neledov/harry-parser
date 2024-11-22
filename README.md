@@ -4,21 +4,20 @@ Efficiently analyze your HAR files.
 
 ## Features 🎩
 
-- **HAR file upload** — easy handling.
-- **Request/response analysis** — inspect details.
-- **SAML/SSO detection** — find auth flows.
-- **Timeline visualization** — view request timing.
+- **HAR file upload** 
+- **Request/response analysis** 
+- **SAML/SSO detection** 
+- **Timeline visualization**
 - **Advanced filters**:
-  - **HTTP methods** — GET, POST.
-  - **Status codes** — 200s, 400s.
-  - **Content types** — JSON, XML.
-  - **SAML flows** — filter flows.
-  - **Error requests** — identify issues.
-- **Syntax highlighting** — readable code.
-- **cURL generation** — create commands.
-- **Certificate analysis** — check SSL/TLS.
-- **Multi-user support** — team collaboration.
-- **Dark theme UI** — light/dark modes.
+  - **HTTP methods** 
+  - **Status codes**
+  - **Content types** 
+  - **SAML flows** 
+  - **Error requests** 
+- **Syntax highlighting** 
+- **cURL generation** 
+- **Certificate analysis** 
+- **Multi-user support** 
 
 ## Tech Stack 🎨
 
