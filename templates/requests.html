@@ -1,4 +1,3 @@
-<!-- templates/requests.html -->
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
 {% block content %}
@@ -15,7 +14,6 @@
                 <option value="POST">POST</option>
                 <option value="PUT">PUT</option>
                 <option value="DELETE">DELETE</option>
-                <!-- Add other methods as needed -->
             </select>
 
             <!-- Status Code Filter -->
@@ -33,13 +31,18 @@
                 <option value="application/json">JSON</option>
                 <option value="text/html">HTML</option>
                 <option value="text/css">CSS</option>
-                <!-- Add other content types as needed -->
             </select>
 
             <!-- Error Only Toggle -->
             <label for="error-only" class="error-only-label">
                 <input type="checkbox" id="error-only" aria-label="Show Errors Only">
                 Show Errors Only
+            </label>
+
+            <!-- SAML Flow Toggle -->
+            <label for="saml-only" class="saml-only-label">
+                <input type="checkbox" id="saml-only" aria-label="Show SAML Flow Only">
+                Show SAML Flow Only
             </label>
         </div>
 

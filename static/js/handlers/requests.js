@@ -28,7 +28,8 @@ export const filterRequests = () => {
         method: document.getElementById("method-filter").value,
         status: document.getElementById("status-filter").value,
         contentType: document.getElementById("content-type-filter").value,
-        errorOnly: document.getElementById("error-only").checked
+        errorOnly: document.getElementById("error-only").checked,
+        samlOnly: document.getElementById("saml-only").checked
     };
 
     let anyVisible = false;
@@ -40,32 +41,28 @@ export const filterRequests = () => {
             method: true,
             status: true,
             contentType: true,
-            error: true
+            error: true,
+            saml: !filters.samlOnly || item.classList.contains('saml-request')
         };
 
-        // URL search
         if (filters.search) {
             matches.search = item.querySelector(".url").textContent.toLowerCase().includes(filters.search);
         }
 
-        // Method filter
         if (filters.method) {
             matches.method = item.querySelector(".method").textContent.trim() === filters.method;
         }
 
-        // Status code filter
         if (filters.status) {
             const statusCode = item.dataset.statusCode;
             matches.status = statusCode && statusCode.startsWith(filters.status);
         }
 
-        // Content type filter
         if (filters.contentType) {
             matches.contentType = item.dataset.contentType && 
                                 item.dataset.contentType.toLowerCase().includes(filters.contentType.toLowerCase());
         }
 
-        // Error only filter
         if (filters.errorOnly) {
             const statusCode = parseInt(item.dataset.statusCode);
             matches.error = statusCode >= 400;
@@ -111,7 +108,6 @@ export const renderRequestDetail = (data) => {
     const detailDiv = document.getElementById("request-detail");
     const mimeType = data.response?.content?.mimeType || "";
     
-    // Add SAML detection
     const isSaml = isSamlRequest(data.request) || isSamlResponse(data.response);
     if (isSaml) {
         data.isSaml = true;
@@ -133,7 +129,6 @@ export const renderRequestDetail = (data) => {
     }
     Prism.highlightAll();
 
-    // Setup copy buttons
     document.querySelectorAll(".copy-button").forEach(button => {
         button.addEventListener("click", () => {
             const text = button.getAttribute("data-text");
@@ -141,7 +136,6 @@ export const renderRequestDetail = (data) => {
         });
     });
 
-    // Setup certificate detail toggles
     document.querySelectorAll(".toggle-cert-details").forEach(button => {
         button.addEventListener("click", (e) => {
             const detailsDiv = e.target.nextElementSibling;

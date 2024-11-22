@@ -755,3 +755,19 @@ input:focus, select:focus, button:focus {
 .weak-algorithm {
     border-left: 4px solid #FFB347;
 }
+
+.saml-only-label {
+    display: flex;
+    align-items: center;
+    color: #9370DB;
+    margin-top: 5px;
+}
+
+.saml-only-label input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+/* Highlight active filter */
+#saml-only:checked + .saml-only-label {
+    font-weight: bold;
+}

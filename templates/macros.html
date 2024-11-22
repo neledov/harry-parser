@@ -12,7 +12,8 @@
         'server-error' if status_code|int >= 500 else
         'unknown'
     ) %}
-    {% set is_saml = 'saml' in entry.request.url|lower or 'sso' in entry.request.url|lower %}
+    {% set is_saml = 'saml' in entry.request.url|lower or 'sso' in entry.request.url|lower or
+                     'saml' in (entry.request.postData.text|lower if entry.request.postData else '') %}
     <li data-index="{{ index }}" 
         data-status-code="{{ status_code }}"
         data-content-type="{{ content_type }}"
@@ -22,11 +23,11 @@
                 {% if entry.response.status|int >= 400 %}
                     error-request
                 {% endif %}
-                {% if is_saml %}
-                    saml-request
-                {% endif %}
             {% else %}
                 status-no-response
+            {% endif %}
+            {% if is_saml %}
+                saml-request
             {% endif %}
         " 
         tabindex="0"

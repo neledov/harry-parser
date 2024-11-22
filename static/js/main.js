@@ -24,7 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
         "method-filter",
         "status-filter",
         "content-type-filter",
-        "error-only"
+        "error-only",
+        "saml-only"
     ];
 
     filterElements.forEach(id => {
@@ -34,13 +35,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Setup search filter
+    // Setup search filter with debounce
     const searchInput = document.getElementById("search");
     if (searchInput) {
         searchInput.addEventListener("input", debounce(filterRequests, 300));
     }
 
-    // Setup file deletion
+    // Setup file deletion handlers
     const filesList = document.getElementById("files-list");
     if (filesList) {
         filesList.addEventListener("click", e => {
@@ -58,4 +59,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000);
         }
     }
+
+    // Initialize keyboard navigation
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            navigateRequests(e.key === 'ArrowUp' ? -1 : 1);
+        }
+    });
 });
+
+// Keyboard navigation function
+function navigateRequests(direction) {
+    const visibleRequests = Array.from(document.querySelectorAll('#request-list li:not([style*="display: none"])'));
+    const currentSelected = document.querySelector('#request-list li.selected');
+    
+    if (!visibleRequests.length) return;
+    
+    let nextIndex = 0;
+    if (currentSelected) {
+        const currentIndex = visibleRequests.indexOf(currentSelected);
+        nextIndex = (currentIndex + direction + visibleRequests.length) % visibleRequests.length;
+    }
+    
+    const nextRequest = visibleRequests[nextIndex];
+    if (nextRequest && nextRequest.dataset.index) {
+        loadRequestDetail(nextRequest.dataset.index);
+    }
+}
