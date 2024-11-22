@@ -1,4 +1,5 @@
 import { decodeCertificate } from './certificate-analyzer.js';
+import { validateXmlSignature } from './signature-validator.js';
 
 export const analyzeSamlSecurity = (samlData, decoded) => {
     const issues = [];
@@ -11,6 +12,23 @@ export const analyzeSamlSecurity = (samlData, decoded) => {
         audience: validateAudience(samlData)
     };
 
+    // Add security warnings based on validations
+    if (validations.signature.status === 'missing') {
+        issues.push('Missing XML signature');
+    }
+    if (validations.encryption.status === 'unencrypted') {
+        warnings.push('SAML message is not encrypted');
+    }
+    if (!validations.certificates.found) {
+        issues.push('No certificates found in SAML message');
+    }
+    if (validations.timestamps.isExpired) {
+        issues.push('SAML assertion has expired');
+    }
+    if (validations.timestamps.isNotYetValid) {
+        issues.push('SAML assertion is not yet valid');
+    }
+
     return {
         issues,
         warnings,
@@ -21,25 +39,55 @@ export const analyzeSamlSecurity = (samlData, decoded) => {
 
 const validateSignature = (decoded) => {
     const hasSignature = decoded.includes('<ds:Signature') || decoded.includes('<Signature');
+    if (!hasSignature) {
+        return {
+            status: 'missing',
+            details: 'No signature found - potential security risk'
+        };
+    }
+
+    const validationResult = validateXmlSignature(decoded);
     return {
-        status: hasSignature ? 'valid' : 'missing',
-        details: hasSignature ? 'SAML message is signed' : 'No signature found - potential security risk'
+        status: validationResult.isValid ? 'valid' : 'invalid',
+        details: validationResult.isValid ? 
+            'SAML message signature is valid' : 
+            'Invalid signature detected',
+        algorithm: validationResult.algorithm,
+        transforms: validationResult.transforms,
+        digestMethod: validationResult.digestMethod,
+        signatureDetails: validationResult.signatureDetails
     };
 };
 
 const checkEncryption = (decoded) => {
     const hasEncryption = decoded.includes('EncryptedData') || decoded.includes('EncryptedKey');
+    const encryptionAlgorithm = extractEncryptionAlgorithm(decoded);
+    
     return {
         status: hasEncryption ? 'encrypted' : 'unencrypted',
-        details: hasEncryption ? 'SAML message is encrypted' : 'Message is not encrypted'
+        details: hasEncryption ? `SAML message is encrypted using ${encryptionAlgorithm || 'unknown algorithm'}` : 'Message is not encrypted',
+        algorithm: encryptionAlgorithm
     };
+};
+
+const extractEncryptionAlgorithm = (decoded) => {
+    const algorithmMatch = decoded.match(/Algorithm="(.*?)"/);
+    return algorithmMatch ? algorithmMatch[1] : null;
 };
 
 const validateCertificates = (decoded) => {
     const certMatches = decoded.match(/<ds:X509Certificate>([^<]+)<\/ds:X509Certificate>/g);
+    const certificates = certMatches ? certMatches.map(cert => {
+        const certData = cert.replace(/<\/?ds:X509Certificate>/g, '');
+        return decodeCertificate(certData);
+    }) : [];
+
     return {
-        found: certMatches ? certMatches.length : 0,
-        details: certMatches ? 'Certificates found in SAML message' : 'No certificates found'
+        found: certificates.length,
+        details: certificates.length ? 
+            `Found ${certificates.length} certificate(s) in SAML message` : 
+            'No certificates found',
+        certificates: certificates
     };
 };
 
@@ -57,13 +105,24 @@ const validateTimestamps = (samlData) => {
     const notBefore = conditions.notBefore ? new Date(conditions.notBefore) : null;
     const notOnOrAfter = conditions.notOnOrAfter ? new Date(conditions.notOnOrAfter) : null;
 
+    const isExpired = notOnOrAfter && now > notOnOrAfter;
+    const isNotYetValid = notBefore && now < notBefore;
+
     return {
-        status: 'valid',
+        status: (!isExpired && !isNotYetValid) ? 'valid' : 'invalid',
         notBefore,
         notOnOrAfter,
-        isExpired: notOnOrAfter && now > notOnOrAfter,
-        isNotYetValid: notBefore && now < notBefore
+        isExpired,
+        isNotYetValid,
+        details: generateTimestampDetails(isExpired, isNotYetValid, notBefore, notOnOrAfter)
     };
+};
+
+const generateTimestampDetails = (isExpired, isNotYetValid, notBefore, notOnOrAfter) => {
+    if (isExpired) return 'SAML assertion has expired';
+    if (isNotYetValid) return 'SAML assertion is not yet valid';
+    if (notBefore && notOnOrAfter) return 'Timestamp validation successful';
+    return 'Incomplete timestamp information';
 };
 
 const validateAudience = (samlData) => {
@@ -71,7 +130,10 @@ const validateAudience = (samlData) => {
     return {
         found: audiences.length,
         values: audiences,
-        details: audiences.length ? 'Audience restrictions found' : 'No audience restrictions'
+        details: audiences.length ? 
+            `Found ${audiences.length} audience restriction(s)` : 
+            'No audience restrictions',
+        status: audiences.length ? 'valid' : 'missing'
     };
 };
 
@@ -86,9 +148,9 @@ const extractCertificateInfo = (decoded) => {
             raw: certData,
             decoded: decodedCert,
             status: {
-                isValid: !decodedCert.isExpired && !decodedCert.isNotYetValid,
-                isExpired: decodedCert.isExpired,
-                isNotYetValid: decodedCert.isNotYetValid
+                isValid: decodedCert && !decodedCert.isExpired && !decodedCert.isNotYetValid,
+                isExpired: decodedCert?.isExpired || false,
+                isNotYetValid: decodedCert?.isNotYetValid || false
             }
         };
     });
