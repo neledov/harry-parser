@@ -589,3 +589,31 @@ input:focus, select:focus, button:focus {
      color: #9370DB;
  }
  
+ /* Add to existing CSS */
+ .saml-section {
+     background-color: #2A2A2A;
+     border: 1px solid #9370DB;
+     border-radius: 8px;
+     margin-top: 20px;
+ }
+ 
+ .saml-section h2 {
+     color: #9370DB;
+ }
+ 
+ .saml-section h3 {
+     color: #89CFF0;
+     margin-top: 15px;
+ }
+ 
+ .saml-details {
+     padding: 15px;
+ }
+ 
+ .saml-conditions, .saml-attributes {
+     margin-top: 15px;
+     padding: 10px;
+     background-color: #333333;
+     border-radius: 4px;
+ }
+ 
