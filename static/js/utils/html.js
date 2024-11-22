@@ -1,5 +1,21 @@
 import { escapeHTML, formatJSON } from './helpers.js';
 import { decodeSamlMessage, parseSamlXml } from './saml.js';
+import { analyzeSamlSecurity } from './saml-analyzer.js';
+
+const renderTimestampValidation = (timestamps) => {
+    if (timestamps.status === 'missing') {
+        return `<p class="warning">${timestamps.details}</p>`;
+    }
+
+    return `
+        <div class="timestamp-details">
+            <p>Valid From: ${timestamps.notBefore ? new Date(timestamps.notBefore).toLocaleString() : 'Not specified'}</p>
+            <p>Valid Until: ${timestamps.notOnOrAfter ? new Date(timestamps.notOnOrAfter).toLocaleString() : 'Not specified'}</p>
+            ${timestamps.isExpired ? '<p class="error">Token has expired</p>' : ''}
+            ${timestamps.isNotYetValid ? '<p class="error">Token is not yet valid</p>' : ''}
+        </div>
+    `;
+};
 
 export const generateDetailHTML = (data, curlCommand, languageClass) => {
     const { request, response } = data;
@@ -108,6 +124,8 @@ export const generateSamlSection = (data) => {
 
     if (!samlData || !decoded) return '';
 
+    const securityAnalysis = analyzeSamlSecurity(samlData, decoded);
+
     return `
         <div class="section saml-section">
             <h2><i class="fas fa-shield-alt"></i> SAML Analysis</h2>
@@ -121,6 +139,47 @@ export const generateSamlSection = (data) => {
                     <button class="copy-button" data-text="${encodeURIComponent(decoded)}" aria-label="Copy Raw SAML">
                         <i class="fas fa-copy"></i> Copy Raw SAML
                     </button>
+                </div>
+
+                <div class="saml-security">
+                    <h3>Security Analysis</h3>
+                    
+                    <div class="security-item ${securityAnalysis.validations.signature.status}">
+                        <h4>Signature</h4>
+                        <p>${securityAnalysis.validations.signature.details}</p>
+                    </div>
+
+                    <div class="security-item ${securityAnalysis.validations.encryption.status}">
+                        <h4>Encryption</h4>
+                        <p>${securityAnalysis.validations.encryption.details}</p>
+                    </div>
+
+                    <div class="security-item">
+                        <h4>Certificates</h4>
+                        <p>${securityAnalysis.validations.certificates.details}</p>
+                        ${securityAnalysis.certificateInfo ? `
+                            <button class="toggle-cert-details">Show Certificate Details</button>
+                            <div class="certificate-details hidden">
+                                <pre><code>${escapeHTML(JSON.stringify(securityAnalysis.certificateInfo, null, 2))}</code></pre>
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="security-item">
+                        <h4>Timestamp Validation</h4>
+                        ${renderTimestampValidation(securityAnalysis.validations.timestamps)}
+                    </div>
+
+                    <div class="security-item">
+                        <h4>Audience Validation</h4>
+                        <p>${securityAnalysis.validations.audience.details}</p>
+                        ${securityAnalysis.validations.audience.found ? `
+                            <ul>
+                                ${securityAnalysis.validations.audience.values.map(aud => 
+                                    `<li>${escapeHTML(aud)}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
                 </div>
                 
                 ${samlData.conditions ? `
