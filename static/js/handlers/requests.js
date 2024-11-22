@@ -133,10 +133,22 @@ export const renderRequestDetail = (data) => {
     }
     Prism.highlightAll();
 
+    // Setup copy buttons
     document.querySelectorAll(".copy-button").forEach(button => {
         button.addEventListener("click", () => {
             const text = button.getAttribute("data-text");
             copyToClipboard(text);
+        });
+    });
+
+    // Setup certificate detail toggles
+    document.querySelectorAll(".toggle-cert-details").forEach(button => {
+        button.addEventListener("click", (e) => {
+            const detailsDiv = e.target.nextElementSibling;
+            const isHidden = detailsDiv.classList.contains("hidden");
+            
+            detailsDiv.classList.toggle("hidden");
+            e.target.textContent = isHidden ? "Hide Certificate Details" : "Show Certificate Details";
         });
     });
 };

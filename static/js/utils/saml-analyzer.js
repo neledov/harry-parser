@@ -1,3 +1,5 @@
+import { decodeCertificate } from './certificate-analyzer.js';
+
 export const analyzeSamlSecurity = (samlData, decoded) => {
     const issues = [];
     const warnings = [];
@@ -34,7 +36,6 @@ const checkEncryption = (decoded) => {
 };
 
 const validateCertificates = (decoded) => {
-    // Extract and validate certificate information
     const certMatches = decoded.match(/<ds:X509Certificate>([^<]+)<\/ds:X509Certificate>/g);
     return {
         found: certMatches ? certMatches.length : 0,
@@ -80,9 +81,15 @@ const extractCertificateInfo = (decoded) => {
 
     return certMatches.map(cert => {
         const certData = cert.replace(/<\/?ds:X509Certificate>/g, '');
+        const decodedCert = decodeCertificate(certData);
         return {
             raw: certData,
-            // Add more certificate parsing if needed
+            decoded: decodedCert,
+            status: {
+                isValid: !decodedCert.isExpired && !decodedCert.isNotYetValid,
+                isExpired: decodedCert.isExpired,
+                isNotYetValid: decodedCert.isNotYetValid
+            }
         };
     });
 };

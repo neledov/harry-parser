@@ -17,6 +17,33 @@ const renderTimestampValidation = (timestamps) => {
     `;
 };
 
+const renderCertificateDetails = (certInfo) => `
+    <div class="certificate-info">
+        <div class="cert-validity ${certInfo.status.isValid ? 'valid' : 'invalid'}">
+            Status: ${certInfo.status.isValid ? 'Valid' : 'Invalid'}
+            ${certInfo.status.isExpired ? ' (Expired)' : ''}
+            ${certInfo.status.isNotYetValid ? ' (Not Yet Valid)' : ''}
+        </div>
+        <h4>Subject</h4>
+        <pre><code>${escapeHTML(JSON.stringify(certInfo.decoded.subject, null, 2))}</code></pre>
+        
+        <h4>Issuer</h4>
+        <pre><code>${escapeHTML(JSON.stringify(certInfo.decoded.issuer, null, 2))}</code></pre>
+        
+        <h4>Validity Period</h4>
+        <p>Not Before: ${certInfo.decoded.validity.notBefore.toLocaleString()}</p>
+        <p>Not After: ${certInfo.decoded.validity.notAfter.toLocaleString()}</p>
+        
+        <h4>Public Key</h4>
+        <p>Algorithm: ${certInfo.decoded.publicKey.algorithm}</p>
+        <p>Key Size: ${certInfo.decoded.publicKey.keySize} bits</p>
+        
+        <h4>Fingerprints</h4>
+        <p>SHA-1: ${certInfo.decoded.fingerprints.sha1}</p>
+        <p>SHA-256: ${certInfo.decoded.fingerprints.sha256}</p>
+    </div>
+`;
+
 export const generateDetailHTML = (data, curlCommand, languageClass) => {
     const { request, response } = data;
     
@@ -157,12 +184,15 @@ export const generateSamlSection = (data) => {
                     <div class="security-item">
                         <h4>Certificates</h4>
                         <p>${securityAnalysis.validations.certificates.details}</p>
-                        ${securityAnalysis.certificateInfo ? `
-                            <button class="toggle-cert-details">Show Certificate Details</button>
-                            <div class="certificate-details hidden">
-                                <pre><code>${escapeHTML(JSON.stringify(securityAnalysis.certificateInfo, null, 2))}</code></pre>
+                        ${securityAnalysis.certificateInfo ? securityAnalysis.certificateInfo.map((cert, index) => `
+                            <div class="certificate-section">
+                                <h5>Certificate ${index + 1}</h5>
+                                <button class="toggle-cert-details">Show Certificate Details</button>
+                                <div class="certificate-details hidden">
+                                    ${renderCertificateDetails(cert)}
+                                </div>
                             </div>
-                        ` : ''}
+                        `).join('') : ''}
                     </div>
 
                     <div class="security-item">
