@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
         window.filename = requestDetail.dataset.filename;
     }
 
-    // Setup event listeners
+    // Setup request list click handlers
     const requestList = document.getElementById("request-list");
     if (requestList) {
         requestList.addEventListener("click", e => {
@@ -19,7 +19,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Setup filters
+    // Setup all filter controls
+    const filterElements = [
+        "method-filter",
+        "status-filter",
+        "content-type-filter",
+        "error-only"
+    ];
+
+    filterElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener("change", filterRequests);
+        }
+    });
+
+    // Setup search filter
     const searchInput = document.getElementById("search");
     if (searchInput) {
         searchInput.addEventListener("input", debounce(filterRequests, 300));

@@ -36,12 +36,40 @@ export const filterRequests = () => {
         if (!item.dataset.index) return;
 
         const matches = {
-            search: item.querySelector(".url")?.textContent.toLowerCase().includes(filters.search),
-            method: !filters.method || item.querySelector(".method")?.textContent.includes(filters.method),
-            status: !filters.status || item.dataset.statusCode?.startsWith(filters.status),
-            contentType: !filters.contentType || item.dataset.contentType?.includes(filters.contentType),
-            error: !filters.errorOnly || (item.dataset.statusCode && /[45]\d\d/.test(item.dataset.statusCode))
+            search: true,
+            method: true,
+            status: true,
+            contentType: true,
+            error: true
         };
+
+        // URL search
+        if (filters.search) {
+            matches.search = item.querySelector(".url").textContent.toLowerCase().includes(filters.search);
+        }
+
+        // Method filter
+        if (filters.method) {
+            matches.method = item.querySelector(".method").textContent.trim() === filters.method;
+        }
+
+        // Status code filter
+        if (filters.status) {
+            const statusCode = item.dataset.statusCode;
+            matches.status = statusCode && statusCode.startsWith(filters.status);
+        }
+
+        // Content type filter
+        if (filters.contentType) {
+            matches.contentType = item.dataset.contentType && 
+                                item.dataset.contentType.toLowerCase().includes(filters.contentType.toLowerCase());
+        }
+
+        // Error only filter
+        if (filters.errorOnly) {
+            const statusCode = parseInt(item.dataset.statusCode);
+            matches.error = statusCode >= 400;
+        }
 
         const isVisible = Object.values(matches).every(Boolean);
         item.style.display = isVisible ? "" : "none";
