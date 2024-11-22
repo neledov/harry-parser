@@ -100,16 +100,6 @@ Create your `.env` file:
 SECRET_KEY=your_super_secret_key
 FLASK_ENV=development  # or 'production' if you're feeling adventurous
 ```
-
-## Usage 🎮
-
-1. **Join the wizard academy** — register an account.
-2. **Enter the magical realm** — log in.
-3. **Upload your HAR files** — let's get started.
-4. **Analyze the HTTP data** — uncover the secrets.
-5. **Filter through the chaos** — find exactly what you're looking for.
-6. **Share your magical commands** — generate cURL commands.
-
 ## Development 🛠️
 
 - Keep your Python code clean and efficient.
