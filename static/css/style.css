@@ -127,7 +127,7 @@ input[type="submit"]:hover {
 }
 
 #search {
-    width: 95%;
+    width: 96%;
     padding: 8px;
     margin-bottom: 15px;
     border-radius: 4px;
@@ -245,7 +245,7 @@ input[type="submit"]:hover {
 
 .filter-container select,
 .filter-container input[type="text"] {
-    width: 100%;
+    width: 99%;
     padding: 8px;
     background-color: #3A3A3A;
     color: #CCCCCC;
