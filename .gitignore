@@ -8,13 +8,14 @@ venv/
 ENV/
 env/
 .venv/
-
+.instance/
 # Logs
 logs/
 *.log
 *.har
 # Uploads
 uploads/
+
 
 # macOS
 .DS_Store

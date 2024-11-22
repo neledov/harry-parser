@@ -579,3 +579,13 @@ input:focus, select:focus, button:focus {
      color: #ff4444;
  }
  
+ /* Add to existing CSS */
+ .saml-request {
+     border-left: 4px solid #9370DB; /* Purple indicator for SAML */
+ }
+ 
+ .saml-icon {
+     margin-left: 5px;
+     color: #9370DB;
+ }
+ 

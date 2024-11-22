@@ -2,6 +2,7 @@ import { showToast, copyToClipboard } from '../utils/helpers.js';
 import { generateDetailHTML } from '../utils/html.js';
 import { generateCurlCommand } from '../utils/curl.js';
 import { createTimelineChart } from '../visualization/chart.js';
+import { isSamlRequest, isSamlResponse } from '../utils/saml-detector.js';
 
 export const loadRequestDetail = async (index) => {
     const filename = window.filename;
@@ -81,9 +82,17 @@ export const deleteFile = async (filename) => {
 export const renderRequestDetail = (data) => {
     const detailDiv = document.getElementById("request-detail");
     const mimeType = data.response?.content?.mimeType || "";
+    
+    // Add SAML detection
+    const isSaml = isSamlRequest(data.request) || isSamlResponse(data.response);
+    if (isSaml) {
+        data.isSaml = true;
+    }
+
     const languageClass = mimeType.includes("json") ? "language-json" : 
                          mimeType.includes("html") ? "language-markup" :
-                         mimeType.includes("css") ? "language-css" : "language-none";
+                         mimeType.includes("xml") || isSaml ? "language-markup" :
+                         "language-none";
 
     const curlCommand = generateCurlCommand(data);
     const html = generateDetailHTML(data, curlCommand, languageClass);

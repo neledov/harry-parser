@@ -12,6 +12,7 @@
         'server-error' if status_code|int >= 500 else
         'unknown'
     ) %}
+    {% set is_saml = 'saml' in entry.request.url|lower or 'sso' in entry.request.url|lower %}
     <li data-index="{{ index }}" 
         data-status-code="{{ status_code }}"
         data-content-type="{{ content_type }}"
@@ -21,6 +22,9 @@
                 {% if entry.response.status|int >= 400 %}
                     error-request
                 {% endif %}
+                {% if is_saml %}
+                    saml-request
+                {% endif %}
             {% else %}
                 status-no-response
             {% endif %}
@@ -28,7 +32,12 @@
         tabindex="0"
         role="button"
         aria-pressed="false">
-        <div class="method {{ method_class }}">{{ method }}</div>
+        <div class="method {{ method_class }}">
+            {{ method }}
+            {% if is_saml %}
+                <i class="fas fa-shield-alt saml-icon" title="SAML Request"></i>
+            {% endif %}
+        </div>
         <div class="url" title="{{ entry.request.url }}">{{ entry.request.url }}</div>
         {% if has_response %}
             <div class="status {{ status_category }}">Status: {{ status_code }}</div>
