@@ -26,7 +26,7 @@
             </h1>
         </div>
         {% if current_user.is_authenticated %}
-        <div class="header-right">
+        <div class="header-center">
             <span class="username">{{ current_user.username }}</span>
             <a href="{{ url_for('logout') }}" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Logout

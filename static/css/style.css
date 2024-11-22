@@ -473,7 +473,7 @@ input:focus, select:focus, button:focus {
  }
  
  .form-group input {
-     width: 100%;
+     width: 95%;
      padding: 10px;
      border: 1px solid #4A4A4A;
      border-radius: 4px;
@@ -770,4 +770,16 @@ input:focus, select:focus, button:focus {
 /* Highlight active filter */
 #saml-only:checked + .saml-only-label {
     font-weight: bold;
+}
+header {
+    justify-content: space-between;
+}
+
+.header-center {
+    display: flex;
+    align-items: right;
+    gap: 20px;
+    position: absolute;
+    left: 90%;
+    transform: translateX(-50%);
 }
