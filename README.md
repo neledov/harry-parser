@@ -73,7 +73,7 @@ flask db upgrade
 **Launch the application:**
 
 ```bash
-flask run  # Let the show begin!
+python3 app.py  # Let the show begin!
 ```
 
 🎉 **Your portal will open at** `http://localhost:5000`
