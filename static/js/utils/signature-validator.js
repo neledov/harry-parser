@@ -100,21 +100,25 @@ const verifySignature = (signedInfo, signature, certificate) => {
     const errors = [];
     let certificateStatus = null;
 
-    if (!signedInfo) {
-        errors.push('SignedInfo section is missing');
-    }
-    if (!signature) {
-        errors.push('Signature value is missing');
-    }
-    if (!certificate) {
-        errors.push('X.509 Certificate is missing');
-    }
-
     try {
         if (certificate && signature && signedInfo) {
             const certDer = forge.util.decode64(certificate);
-            const asn1Cert = forge.asn1.fromDer(certDer);
-            const cert = forge.pki.certificateFromAsn1(asn1Cert);
+            const cert = forge.pki.certificateFromAsn1(forge.asn1.fromDer(certDer));
+            
+            // Create RSA public key from certificate
+            const publicKey = cert.publicKey;
+            const md = forge.md.sha256.create();
+            
+            // Update message digest with normalized signed info
+            md.update(normalizeXml(signedInfo));
+            
+            // Verify signature using RSA-SHA256
+            const sig = forge.util.decode64(signature);
+            const verified = publicKey.verify(md.digest().bytes(), sig);
+            
+            if (!verified) {
+                errors.push('Signature verification failed');
+            }
             
             certificateStatus = {
                 subject: cert.subject.getField('CN').value,
@@ -125,17 +129,6 @@ const verifySignature = (signedInfo, signature, certificate) => {
                 serialNumber: cert.serialNumber,
                 signatureAlgorithm: cert.signatureOid
             };
-
-            const publicKey = cert.publicKey;
-            const verifier = forge.pki.createVerifier(publicKey);
-            const normalizedSignedInfo = normalizeXml(signedInfo);
-            const md = forge.md.sha256.create();
-            md.update(normalizedSignedInfo, 'utf8');
-            const signatureBytes = forge.util.decode64(signature);
-            
-            if (!verifier.verify(md.digest().bytes(), signatureBytes)) {
-                errors.push('Signature verification failed - cryptographic mismatch');
-            }
         }
     } catch (e) {
         errors.push(`Verification error: ${e.message}`);
@@ -155,18 +148,4 @@ const normalizeXml = (xml) => {
               .replace(/\s+>/g, '>')
               .replace(/<\s+/g, '<')
               .trim();
-};
-
-export const validateSignatureStrength = (algorithm) => {
-    const weakAlgorithms = [
-        'http://www.w3.org/2000/09/xmldsig#rsa-sha1',
-        'http://www.w3.org/2000/09/xmldsig#sha1'
-    ];
-
-    return {
-        isWeak: weakAlgorithms.includes(algorithm),
-        recommendation: weakAlgorithms.includes(algorithm) 
-            ? 'Consider using stronger algorithms like RSA-SHA256 or higher'
-            : 'Algorithm strength is acceptable'
-    };
 };

@@ -1,5 +1,3 @@
-# app.py
-
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from models import db, User, HARFile
@@ -170,6 +168,33 @@ def requests_page(filename):
                          app_name='HARRY', 
                          entries=entries, 
                          filename=filename)
+
+@app.route('/requests/<filename>/batch')
+@login_required
+def batch_requests(filename):
+    har_file = HARFile.query.filter_by(
+        filename=filename,
+        user_id=current_user.id
+    ).first()
+    
+    if not har_file:
+        return jsonify({'error': 'File not found or access denied'}), 403
+        
+    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
+    if not os.path.exists(filepath):
+        return jsonify({'error': 'File not found'}), 404
+        
+    with open(filepath, 'r', encoding='utf-8') as f:
+        har_data = json.load(f)
+    entries = har_data.get('log', {}).get('entries', [])
+    
+    return jsonify({
+        str(i): {
+            'request': entry['request'],
+            'response': entry['response'],
+            'timings': entry['timings']
+        } for i, entry in enumerate(entries)
+    })
 
 @app.route('/request/<filename>/<int:index>')
 @login_required

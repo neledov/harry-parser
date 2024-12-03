@@ -4,15 +4,21 @@ import { generateCurlCommand } from '../utils/curl.js';
 import { createTimelineChart } from '../visualization/chart.js';
 import { isSamlRequest, isSamlResponse } from '../utils/saml-detector.js';
 
+let requestCache = null;
+
 export const loadRequestDetail = async (index) => {
     const filename = window.filename;
     if (!filename) return;
 
     try {
-        const response = await fetch(`/request/${encodeURIComponent(filename)}/${index}`);
-        const data = await response.json();
-        
-        if (!response.ok) throw new Error(data.error);
+        if (!requestCache) {
+            const response = await fetch(`/requests/${encodeURIComponent(filename)}/batch`);
+            if (!response.ok) throw new Error('Failed to load request data');
+            requestCache = await response.json();
+        }
+
+        const data = requestCache[index];
+        if (!data) throw new Error('Request not found');
         
         renderRequestDetail(data);
         updateSelectedRequest(index);
@@ -129,13 +135,20 @@ export const renderRequestDetail = (data) => {
     }
     Prism.highlightAll();
 
+    setupCopyButtons();
+    setupCertificateToggles();
+};
+
+const setupCopyButtons = () => {
     document.querySelectorAll(".copy-button").forEach(button => {
         button.addEventListener("click", () => {
             const text = button.getAttribute("data-text");
             copyToClipboard(text);
         });
     });
+};
 
+const setupCertificateToggles = () => {
     document.querySelectorAll(".toggle-cert-details").forEach(button => {
         button.addEventListener("click", (e) => {
             const detailsDiv = e.target.nextElementSibling;
