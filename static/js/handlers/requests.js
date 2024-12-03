@@ -151,14 +151,13 @@ const setupCopyButtons = () => {
 const setupCertificateToggles = () => {
     document.querySelectorAll(".toggle-cert-details").forEach(button => {
         button.addEventListener("click", (e) => {
-            const detailsDiv = e.target.nextElementSibling;
-            const isHidden = detailsDiv.classList.contains("hidden");
-            
+            const certItem = e.target.closest('.certificate-item');
+            const detailsDiv = certItem.querySelector('.certificate-details');
             detailsDiv.classList.toggle("hidden");
-            e.target.textContent = isHidden ? "Hide Certificate Details" : "Show Certificate Details";
         });
     });
 };
+
 
 export const updateSelectedRequest = (index) => {
     document.querySelectorAll("#request-list li").forEach(item => {

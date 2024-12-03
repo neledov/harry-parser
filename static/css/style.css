@@ -589,82 +589,188 @@ input:focus, select:focus, button:focus {
      color: #9370DB;
  }
  
- /* Add to existing CSS */
- .saml-section {
-     background-color: #2A2A2A;
-     border: 1px solid #9370DB;
+  /* Add to existing CSS */
+  .saml-section {
+      background-color: #2A2A2A;
+      border: 1px solid #9370DB;
+      border-radius: 8px;
+      margin-top: 20px;
+  }
+ 
+  .saml-section h2 {
+      color: #9370DB;
+  }
+ 
+  .saml-section h3 {
+      color: #89CFF0;
+      margin-top: 15px;
+  }
+ 
+  .saml-details {
+      padding: 15px;
+  }
+ 
+  .saml-conditions, .saml-attributes {
+      margin-top: 15px;
+      padding: 10px;
+      background-color: #333333;
+      border-radius: 4px;
+  }
+ 
+  .saml-security {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #2A2A2A;
+      border-radius: 4px;
+  }
+ 
+  .security-item {
+      margin: 10px 0;
+      padding: 10px;
+      border-left: 4px solid #666;
+      background-color: #333333;
+  }
+ 
+  .security-item.valid {
+      border-left-color: #77DD77;
+  }
+ 
+  .security-item.missing, 
+  .security-item.unencrypted {
+      border-left-color: #FF6961;
+  }
+ 
+  .certificate-details {
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #222222;
+      border-radius: 4px;
+  }
+ 
+  .certificate-details.hidden {
+      display: none;
+  }
+ 
+  .toggle-cert-details {
+      margin-top: 10px;
+      background-color: #444444;
+      border: none;
+      color: #CCCCCC;
+      padding: 5px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+  }
+ 
+  .toggle-cert-details:hover {
+      background-color: #555555;
+  }
+
+/* SAML Section Enhancements */
+.saml-overview {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+     gap: 15px;
+     margin-bottom: 20px;
+     padding: 15px;
+     background: #333333;
      border-radius: 8px;
-     margin-top: 20px;
- }
- 
- .saml-section h2 {
-     color: #9370DB;
- }
- 
- .saml-section h3 {
-     color: #89CFF0;
-     margin-top: 15px;
- }
- 
- .saml-details {
-     padding: 15px;
- }
- 
- .saml-conditions, .saml-attributes {
-     margin-top: 15px;
+}
+
+.overview-item {
      padding: 10px;
-     background-color: #333333;
+     background: #2A2A2A;
      border-radius: 4px;
- }
- 
- .saml-security {
-     margin-top: 20px;
-     padding: 15px;
-     background-color: #2A2A2A;
-     border-radius: 4px;
- }
- 
- .security-item {
-     margin: 10px 0;
-     padding: 10px;
-     border-left: 4px solid #666;
-     background-color: #333333;
- }
- 
- .security-item.valid {
-     border-left-color: #77DD77;
- }
- 
- .security-item.missing, 
- .security-item.unencrypted {
-     border-left-color: #FF6961;
- }
- 
- .certificate-details {
+     border-left: 4px solid #89CFF0;
+}
+
+.security-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+     gap: 20px;
+}
+
+.attributes-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+     gap: 15px;
      margin-top: 10px;
+}
+
+.attribute-item {
+     background: #2A2A2A;
      padding: 10px;
-     background-color: #222222;
      border-radius: 4px;
- }
- 
- .certificate-details.hidden {
-     display: none;
- }
- 
- .toggle-cert-details {
+     display: flex;
+     flex-direction: column;
+     gap: 5px;
+}
+
+.conditions-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+     gap: 15px;
      margin-top: 10px;
-     background-color: #444444;
+}
+
+.condition-item {
+     background: #2A2A2A;
+     padding: 10px;
+     border-radius: 4px;
+}
+
+.condition-item.full-width {
+     grid-column: 1 / -1;
+}
+
+.certificate-item {
+     margin-bottom: 15px;
+}
+
+.toggle-cert-details {
+     width: 100%;
+     text-align: left;
+     padding: 10px;
+     background: #333333;
      border: none;
-     color: #CCCCCC;
-     padding: 5px 10px;
      border-radius: 4px;
+     color: #CCCCCC;
      cursor: pointer;
- }
- 
- .toggle-cert-details:hover {
-     background-color: #555555;
- }
- /* Existing styles remain unchanged */
+     display: flex;
+     justify-content: space-between;
+     align-items: center;
+}
+
+.cert-status {
+     padding: 3px 8px;
+     border-radius: 3px;
+     font-size: 0.9em;
+}
+
+.cert-status.valid {
+     background: #77DD77;
+     color: #1E1E1E;
+}
+
+.cert-status.invalid {
+     background: #FF6961;
+     color: #1E1E1E;
+}
+
+.algorithm-info {
+     margin-top: 10px;
+     padding: 5px 10px;
+     background: #333333;
+     border-radius: 4px;
+     font-size: 0.9em;
+}
+
+.saml-raw {
+     margin: 20px 0;
+}
+
+.saml-raw .copy-button {
+     margin-bottom: 10px;
+} /* Existing styles remain unchanged */
 
 /* Security Analysis Styles */
 .security-item {
