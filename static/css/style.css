@@ -675,7 +675,6 @@ input:focus, select:focus, button:focus {
      background: #333333;
      border-radius: 8px;
 }
-
 .overview-item {
      padding: 10px;
      background: #2A2A2A;
@@ -683,6 +682,16 @@ input:focus, select:focus, button:focus {
      border-left: 4px solid #89CFF0;
 }
 
+/* Add these specific status styles */
+.overview-item.invalid,
+.overview-item.unencrypted {
+     border-left-color: #FF6961;
+}
+
+.overview-item.valid,
+.overview-item.encrypted {
+     border-left-color: #77DD77;
+}
 .security-grid {
      display: grid;
      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
