@@ -566,10 +566,13 @@ input:focus, select:focus, button:focus {
  border-radius: 8px;
 }
 .overview-item {
- padding: 10px;
- background: #2A2A2A;
- border-radius: 4px;
- border-left: 4px solid #89CFF0;
+    padding: 10px;
+    background: #2A2A2A;
+    border-radius: 4px;
+    border-left: 4px solid #89CFF0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 /* Add these specific status styles */
 .overview-item.invalid,
@@ -579,6 +582,12 @@ input:focus, select:focus, button:focus {
 .overview-item.valid,
 .overview-item.encrypted {
  border-left-color: #77DD77;
+}
+
+.overview-item:hover {
+    white-space: normal;
+    overflow: visible;
+    word-wrap: break-word;
 }
 .security-grid {
  display: grid;
