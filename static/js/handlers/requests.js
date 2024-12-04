@@ -1,10 +1,25 @@
-import { showToast, copyToClipboard } from '../utils/helpers.js';
+import { showToast, copyToClipboard, debounce } from '../utils/helpers.js';
 import { generateDetailHTML } from '../utils/html.js';
 import { generateCurlCommand } from '../utils/curl.js';
 import { createTimelineChart } from '../visualization/chart.js';
 import { isSamlRequest, isSamlResponse } from '../utils/saml-detector.js';
 
 let requestCache = null;
+
+const updateProgress = (loaded, total) => {
+    const progressBar = document.querySelector('.progress-bar');
+    const progressContainer = document.querySelector('.progress-container');
+    const progressText = document.querySelector('.progress-text');
+    
+    progressContainer.classList.remove('hidden');
+    const progress = (loaded / total) * 100;
+    progressBar.style.width = `${progress}%`;
+    progressText.textContent = `Loading: ${Math.round(progress)}%`;
+    
+    if (loaded === total) {
+        setTimeout(() => progressContainer.classList.add('hidden'), 500);
+    }
+};
 
 export const loadRequestDetail = async (index) => {
     const filename = window.filename;
@@ -13,8 +28,29 @@ export const loadRequestDetail = async (index) => {
     try {
         if (!requestCache) {
             const response = await fetch(`/requests/${encodeURIComponent(filename)}/batch`);
-            if (!response.ok) throw new Error('Failed to load request data');
-            requestCache = await response.json();
+            const reader = response.body.getReader();
+            const contentLength = +response.headers.get('Content-Length');
+
+            let receivedLength = 0;
+            const chunks = [];
+
+            while(true) {
+                const {done, value} = await reader.read();
+                if (done) break;
+                
+                chunks.push(value);
+                receivedLength += value.length;
+                updateProgress(receivedLength, contentLength);
+            }
+
+            const chunksAll = new Uint8Array(receivedLength);
+            let position = 0;
+            for(let chunk of chunks) {
+                chunksAll.set(chunk, position);
+                position += chunk.length;
+            }
+
+            requestCache = JSON.parse(new TextDecoder().decode(chunksAll));
         }
 
         const data = requestCache[index];
@@ -93,6 +129,97 @@ export const filterRequests = () => {
     }
 };
 
+const searchInResponses = (searchText) => {
+    if (!requestCache || !searchText) {
+        hideSearchResults();
+        return;
+    }
+    
+    const matches = Object.entries(requestCache).filter(([_, data]) => {
+        const responseContent = data.response?.content?.text || '';
+        return responseContent.toLowerCase().includes(searchText.toLowerCase());
+    });
+
+    document.getElementById('search-results-count').textContent = 
+        `Found: ${matches.length} matches`;
+
+    showSearchResults(matches, searchText);
+};
+
+const showSearchResults = (matches, searchText) => {
+    let resultsPanel = document.getElementById('response-search-results');
+    if (!resultsPanel) {
+        resultsPanel = document.createElement('div');
+        resultsPanel.id = 'response-search-results';
+        document.querySelector('.search-container').appendChild(resultsPanel);
+    }
+
+    const resultsList = matches.map(([index, data]) => {
+        const method = data.request.method;
+        const url = data.request.url;
+        const status = data.response.status;
+        const snippet = getMatchSnippet(data.response.content.text, searchText);
+
+        return `
+            <div class="search-result-item" data-index="${index}">
+                <div class="result-header">
+                    <span class="method ${method}">${method}</span>
+                    <span class="url">${url}</span>
+                    <span class="status status-${status}">${status}</span>
+                </div>
+                <div class="result-snippet">${snippet}</div>
+            </div>
+        `;
+    }).join('');
+
+    resultsPanel.innerHTML = resultsList;
+    resultsPanel.style.display = matches.length ? 'block' : 'none';
+
+    // Add click handlers
+    resultsPanel.querySelectorAll('.search-result-item').forEach(item => {
+        item.addEventListener('click', () => {
+            loadRequestDetail(item.dataset.index);
+            hideSearchResults();
+        });
+    });
+};
+
+const getMatchSnippet = (content, searchText) => {
+    const maxLength = 200;
+    const lowerContent = String(content).toLowerCase();
+    const index = lowerContent.indexOf(searchText.toLowerCase());
+    
+    if (index === -1) return '';
+    
+    let start = Math.max(0, index - 50);
+    let end = Math.min(content.length, index + searchText.length + 50);
+    let snippet = String(content).slice(start, end);
+    
+    if (start > 0) snippet = '...' + snippet;
+    if (end < content.length) snippet = snippet + '...';
+    
+    // Escape HTML before highlighting
+    snippet = snippet.replace(/[&<>"']/g, char => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+    }[char]));
+    
+    return snippet.replace(
+        new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'),
+        match => `<mark>${match}</mark>`
+    );
+};
+
+const hideSearchResults = () => {
+    const resultsPanel = document.getElementById('response-search-results');
+    if (resultsPanel) {
+        resultsPanel.style.display = 'none';
+    }
+};
+
 export const deleteFile = async (filename) => {
     if (!confirm('Delete this file?')) return;
 
@@ -158,7 +285,6 @@ const setupCertificateToggles = () => {
     });
 };
 
-
 export const updateSelectedRequest = (index) => {
     document.querySelectorAll("#request-list li").forEach(item => {
         item.classList.remove("selected");
@@ -169,3 +295,15 @@ export const updateSelectedRequest = (index) => {
         selectedItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 };
+
+// Add response search event listener
+document.getElementById('response-search')?.addEventListener('input', 
+    debounce(e => searchInResponses(e.target.value), 300));
+
+// Add click outside listener to hide search results
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('#response-search-results') && 
+        !e.target.closest('#response-search')) {
+        hideSearchResults();
+    }
+});

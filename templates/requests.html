@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% import "macros.html" as macros %}
 {% block content %}
+<div class="secondary-panel">
+    <div class="search-container">
+        <input type="text" id="response-search" placeholder="Search in response content..." aria-label="Search in response content">
+        <span class="search-count" id="search-results-count"></span>
+    </div>
+</div>
 <div id="main-content">
     <div class="left-panel">
         <div class="filter-container">

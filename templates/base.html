@@ -37,6 +37,10 @@
         </div>
         {% endif %}
     </header>
+    <div id="progress-bar" class="progress-container hidden">
+        <div class="progress-bar"></div>
+        <span class="progress-text">Loading...</span>
+    </div>
     <div class="container">
         {% with messages = get_flashed_messages() %}
           {% if messages %}
