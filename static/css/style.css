@@ -369,8 +369,12 @@ input:focus, select:focus, button:focus {
  animation: fadeInOut 2s forwards;
 }
 @keyframes fadeInOut {
- 0% { opacity: 0; }
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
 }
+
 .copy-message.error {
  background-color: #FFB6C1; /* Pastel red */
 }
