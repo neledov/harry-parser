@@ -213,7 +213,7 @@ input[type="submit"]:hover {
 .filter-container label.error-only-label {
  display: flex;
  align-items: center;
- color: #CCCCCC;
+ color: #FF6961;
 }
 .filter-container input[type="checkbox"] {
  margin-right: 5px;
