@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_socketio import SocketIO, emit
 from models import db, User, HARFile
 import os
 import json
@@ -16,6 +17,7 @@ app.config['UPLOAD_FOLDER'] = 'uploads'
 ALLOWED_EXTENSIONS = {'har'}
 
 db.init_app(app)
+socketio = SocketIO(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
@@ -34,6 +36,54 @@ def allowed_file(filename):
 
 def get_user_files(user_id):
     return HARFile.query.filter_by(user_id=user_id).all()
+
+@socketio.on('connect')
+def handle_connect():
+    logging.info(f"Client connected: {request.sid}")
+
+@socketio.on('request_har_data')
+def handle_har_request(data):
+    if not current_user.is_authenticated:
+        emit('error', {'message': 'Authentication required'})
+        return
+
+    filename = data.get('filename')
+    har_file = HARFile.query.filter_by(
+        filename=filename,
+        user_id=current_user.id
+    ).first()
+    
+    if not har_file:
+        emit('error', {'message': 'File not found or access denied'})
+        return
+        
+    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
+    if not os.path.exists(filepath):
+        emit('error', {'message': 'File not found'})
+        return
+
+    try:
+        with open(filepath, 'r', encoding='utf-8') as f:
+            har_data = json.load(f)
+            entries = har_data.get('log', {}).get('entries', [])
+            
+            # Stream entries in chunks
+            chunk_size = 50
+            total_entries = len(entries)
+            
+            for i in range(0, total_entries, chunk_size):
+                chunk = entries[i:i + chunk_size]
+                emit('har_data_chunk', {
+                    'chunk': chunk,
+                    'progress': (i + len(chunk)) / total_entries * 100,
+                    'isLast': (i + chunk_size) >= total_entries,
+                    'totalEntries': total_entries
+                })
+                
+            logging.info(f"User {current_user.username} streamed HAR file: {filename}")
+    except Exception as e:
+        logging.error(f"Error streaming HAR file {filename}: {str(e)}")
+        emit('error', {'message': 'Error processing HAR file'})
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -156,89 +206,11 @@ def requests_page(filename):
         flash('File not found or access denied.')
         return redirect(url_for('upload_file'))
         
-    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
-    if not os.path.exists(filepath):
-        flash('File not found.')
-        return redirect(url_for('upload_file'))
-        
-    with open(filepath, 'r', encoding='utf-8') as f:
-        har_data = json.load(f)
-    entries = har_data.get('log', {}).get('entries', [])
     return render_template('requests.html', 
                          app_name='HARRY', 
-                         entries=entries, 
                          filename=filename)
-
-@app.route('/requests/<filename>/batch')
-@login_required
-def batch_requests(filename):
-    har_file = HARFile.query.filter_by(
-        filename=filename,
-        user_id=current_user.id
-    ).first()
-    
-    if not har_file:
-        return jsonify({'error': 'File not found or access denied'}), 403
-        
-    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
-    if not os.path.exists(filepath):
-        return jsonify({'error': 'File not found'}), 404
-        
-    with open(filepath, 'r', encoding='utf-8') as f:
-        har_data = json.load(f)
-    entries = har_data.get('log', {}).get('entries', [])
-    
-    return jsonify({
-        str(i): {
-            'request': entry['request'],
-            'response': entry['response'],
-            'timings': entry['timings']
-        } for i, entry in enumerate(entries)
-    })
-
-@app.route('/request/<filename>/<int:index>')
-@login_required
-def get_request_detail(filename, index):
-    har_file = HARFile.query.filter_by(
-        filename=filename,
-        user_id=current_user.id
-    ).first()
-    
-    if not har_file:
-        return jsonify({'error': 'File not found or access denied.'}), 403
-        
-    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
-    if not os.path.exists(filepath):
-        return jsonify({'error': 'File not found.'}), 404
-        
-    with open(filepath, 'r', encoding='utf-8') as f:
-        har_data = json.load(f)
-    entries = har_data.get('log', {}).get('entries', [])
-    if index < 0 or index >= len(entries):
-        return jsonify({'error': 'Invalid request index.'}), 400
-    entry = entries[index]
-    request_data = {
-        'method': entry['request']['method'],
-        'url': entry['request']['url'],
-        'headers': entry['request'].get('headers', []),
-        'queryString': entry['request'].get('queryString', []),
-        'postData': entry['request'].get('postData', {})
-    }
-    response_data = {
-        'status': entry['response']['status'],
-        'statusText': entry['response'].get('statusText', ''),
-        'headers': entry['response'].get('headers', []),
-        'content': entry['response'].get('content', {})
-    }
-    timings = entry.get('timings', {})
-    logging.info(f"User {current_user.username} fetched details for request index {index} in file {filename}")
-    return jsonify({
-        'request': request_data,
-        'response': response_data,
-        'timings': timings
-    })
 
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs('logs', exist_ok=True)
-    app.run(debug=True)
+    socketio.run(app, debug=True)

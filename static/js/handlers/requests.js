@@ -4,56 +4,12 @@ import { generateCurlCommand } from '../utils/curl.js';
 import { createTimelineChart } from '../visualization/chart.js';
 import { isSamlRequest, isSamlResponse } from '../utils/saml-detector.js';
 
-let requestCache = null;
-
-const updateProgress = (loaded, total) => {
-    const progressBar = document.querySelector('.progress-bar');
-    const progressContainer = document.querySelector('.progress-container');
-    const progressText = document.querySelector('.progress-text');
-    
-    progressContainer.classList.remove('hidden');
-    const progress = (loaded / total) * 100;
-    progressBar.style.width = `${progress}%`;
-    progressText.textContent = `Loading: ${Math.round(progress)}%`;
-    
-    if (loaded === total) {
-        setTimeout(() => progressContainer.classList.add('hidden'), 500);
-    }
-};
-
 export const loadRequestDetail = async (index) => {
     const filename = window.filename;
     if (!filename) return;
 
     try {
-        if (!requestCache) {
-            const response = await fetch(`/requests/${encodeURIComponent(filename)}/batch`);
-            const reader = response.body.getReader();
-            const contentLength = +response.headers.get('Content-Length');
-
-            let receivedLength = 0;
-            const chunks = [];
-
-            while(true) {
-                const {done, value} = await reader.read();
-                if (done) break;
-                
-                chunks.push(value);
-                receivedLength += value.length;
-                updateProgress(receivedLength, contentLength);
-            }
-
-            const chunksAll = new Uint8Array(receivedLength);
-            let position = 0;
-            for(let chunk of chunks) {
-                chunksAll.set(chunk, position);
-                position += chunk.length;
-            }
-
-            requestCache = JSON.parse(new TextDecoder().decode(chunksAll));
-        }
-
-        const data = requestCache[index];
+        const data = window.requestCache[index];
         if (!data) throw new Error('Request not found');
         
         renderRequestDetail(data);
@@ -130,12 +86,12 @@ export const filterRequests = () => {
 };
 
 const searchInResponses = (searchText) => {
-    if (!requestCache || !searchText) {
+    if (!window.requestCache || !searchText) {
         hideSearchResults();
         return;
     }
     
-    const matches = Object.entries(requestCache).filter(([_, data]) => {
+    const matches = Object.entries(window.requestCache).filter(([_, data]) => {
         const responseContent = data.response?.content?.text || '';
         return responseContent.toLowerCase().includes(searchText.toLowerCase());
     });
@@ -175,7 +131,6 @@ const showSearchResults = (matches, searchText) => {
     resultsPanel.innerHTML = resultsList;
     resultsPanel.style.display = matches.length ? 'block' : 'none';
 
-    // Add click handlers
     resultsPanel.querySelectorAll('.search-result-item').forEach(item => {
         item.addEventListener('click', () => {
             loadRequestDetail(item.dataset.index);
@@ -198,7 +153,6 @@ const getMatchSnippet = (content, searchText) => {
     if (start > 0) snippet = '...' + snippet;
     if (end < content.length) snippet = snippet + '...';
     
-    // Escape HTML before highlighting
     snippet = snippet.replace(/[&<>"']/g, char => ({
         '&': '&amp;',
         '<': '&lt;',
@@ -296,11 +250,9 @@ export const updateSelectedRequest = (index) => {
     }
 };
 
-// Add response search event listener
 document.getElementById('response-search')?.addEventListener('input', 
     debounce(e => searchInResponses(e.target.value), 300));
 
-// Add click outside listener to hide search results
 document.addEventListener('click', (e) => {
     if (!e.target.closest('#response-search-results') && 
         !e.target.closest('#response-search')) {

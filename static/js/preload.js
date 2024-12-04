@@ -1,14 +1,31 @@
-window.addEventListener('load', async () => {
+import { HARSocketClient } from './websocket.js';
+
+window.addEventListener('load', () => {
     const requestDetail = document.getElementById('request-detail');
     if (!requestDetail) return;
     
     const filename = requestDetail.dataset.filename;
-    try {
-        const response = await fetch(`/requests/${encodeURIComponent(filename)}/batch`);
-        if (response.ok) {
-            window.requestCache = await response.json();
-        }
-    } catch (error) {
-        console.error('Failed to preload request data:', error);
+    window.harSocket = new HARSocketClient();
+    window.harSocket.requestHARData(filename);
+    
+    // Initialize progress tracking
+    const progressContainer = document.querySelector('.progress-container');
+    if (progressContainer) {
+        progressContainer.classList.remove('hidden');
     }
+    
+    // Setup WebSocket reconnection handling
+    window.harSocket.socket.on('disconnect', () => {
+        const progressText = document.querySelector('.progress-text');
+        if (progressText) {
+            progressText.textContent = 'Reconnecting...';
+        }
+    });
+    
+    window.harSocket.socket.on('connect', () => {
+        const progressText = document.querySelector('.progress-text');
+        if (progressText) {
+            progressText.textContent = 'Connected';
+        }
+    });
 });

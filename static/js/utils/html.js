@@ -330,3 +330,31 @@ export const generateSamlSection = (data) => {
       </div>
   `;
 };
+
+// Add this export along with the existing exports
+export const generateRequestListItem = (entry) => {
+    const method = entry.request.method;
+    const url = entry.request.url;
+    const status = entry.response?.status || 'No Status';
+    const contentType = entry.response?.content?.mimeType || 'Unknown';
+    const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
+    
+    const statusCategory = 
+        status >= 200 && status < 300 ? 'success' :
+        status >= 300 && status < 400 ? 'redirection' :
+        status >= 400 && status < 500 ? 'client-error' :
+        status >= 500 ? 'server-error' : 'unknown';
+
+    const isSaml = url.toLowerCase().includes('saml') || 
+                  url.toLowerCase().includes('sso') ||
+                  entry.request.postData?.text?.toLowerCase().includes('saml');
+
+    return `
+        <div class="method ${methodClass}">
+            ${method}
+            ${isSaml ? '<i class="fas fa-shield-alt saml-icon" title="SAML Request"></i>' : ''}
+        </div>
+        <div class="url" title="${url}">${url}</div>
+        <div class="status ${statusCategory}">Status: ${status}</div>
+    `;
+};
