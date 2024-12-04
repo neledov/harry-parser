@@ -1,32 +1,34 @@
 # HARRY - HAR Analyzer
 
-HARRY is a web-based HTTP Archive (HAR) file analyzer.
+HARRY is a offline web-based HTTP Archive (HAR) file analyzer with special focus on SAML traffic analysis and security assessment.
 
 ## Features
 
-- 🔒 Secure user authentication and file management
-- 📊 Interactive HAR file visualization
-- 🔍 Advanced filtering and search capabilities
-- 🛡️ SAML traffic analysis and security validation
-- 📜 Certificate validation and analysis
-- 🔐 XML signature verification
-- 📋 One-click cURL command generation
-- ⏱️ Request timeline visualization
-- 🔄 Real-time WebSocket updates
+- Secure multi-user authentication system
+- Real-time HAR file parsing and visualization
+- Advanced SAML message analysis and validation
+- XML signature verification
+- Certificate chain analysis
+- Timeline visualization for request/response cycles
+- Intelligent request filtering and search capabilities
+- Response content search functionality
+- Syntax highlighting for various content types
+- WebSocket-based streaming for large files
 
-## Prerequisites
+## Technology Stack
 
-- Python 3.12+
-- Flask and dependencies
-- SQLite3
-- Modern web browser with JavaScript enabled
+- Backend: Flask, SQLAlchemy, Flask-SocketIO
+- Frontend: Vanilla JavaScript (ES6+), Chart.js
+- Security: Flask-Login, Werkzeug
+- Database: SQLite
+- Styling: Custom CSS with dark theme
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/neledov/harry-parser.git
-cd harry-parser
+git clone https://github.com/yourusername/harry.git
+cd harry
 ```
 
 2. Create and activate virtual environment:
@@ -37,7 +39,7 @@ source env/bin/activate  # On Windows: env\Scripts\activate
 
 3. Install dependencies:
 ```bash
-pip install -r requirements.txt
+pip install flask flask-sqlalchemy flask-login flask-socketio werkzeug
 ```
 
 4. Initialize the database:
@@ -49,86 +51,76 @@ python
 >>> exit()
 ```
 
+## Configuration
+
+- Set environment variables:
+```bash
+export SECRET_KEY='your-secure-secret-key'  # On Windows: set SECRET_KEY=your-secure-secret-key
+```
+
+- Default configuration:
+  - Upload directory: ./uploads
+  - Database: SQLite (harry.db)
+  - Logs directory: ./logs
+
 ## Running the Application
 
-Start the server:
+Development server:
 ```bash
 python app.py
 ```
 
-Access the application at 'http://localhost:5000'
+Production deployment:
+- Use gunicorn with eventlet worker
+- Set up reverse proxy (nginx recommended)
+- Configure SSL/TLS
 
-## Project Structure
+## Security Features
 
-```
-harry/
-├── app.py                 # Main Flask application
-├── models.py              # Database models
-├── requirements.txt       # Project dependencies
-├── static/
-│   ├── css/
-│   │   └── style.css     # Main stylesheet
-│   └── js/
-│       ├── bundle.js     # Main JavaScript bundle
-│       ├── handlers/
-│       │   └── requests.js
-│       ├── utils/
-│       │   ├── certificate-analyzer.js
-│       │   ├── curl.js
-│       │   ├── encryption-handler.js
-│       │   ├── helpers.js
-│       │   ├── html.js
-│       │   ├── saml-analyzer.js
-│       │   ├── saml-detector.js
-│       │   ├── saml.js
-│       │   └── signature-validator.js
-│       ├── visualization/
-│       │   └── chart.js
-│       ├── main.js
-│       ├── preload.js
-│       └── websocket.js
-├── templates/
-│   ├── base.html         # Base template
-│   ├── login.html        # Login page
-│   ├── macros.html       # Reusable template components
-│   ├── processing.html   # Processing status page
-│   ├── register.html     # Registration page
-│   ├── requests.html     # Main analysis view
-│   └── upload.html       # File upload page
-└── uploads/              # User uploaded files directory
-```
-
-## Key Features
-
-### HAR Analysis
-- Real-time HAR file parsing
-- Interactive request/response viewer
-- Timeline visualization
-- Advanced filtering and search
-
-### SAML Analysis
-- SAML message detection and decoding
-- Security validation
-- Certificate analysis
-- XML signature verification
-- Encryption validation
-
-### Security
-- User authentication
-- Secure file storage
+- Secure password hashing using Werkzeug
 - Per-user file isolation
-- Input validation
-- XSS protection
+- SAML security analysis
+  - XML signature validation
+  - Certificate validation
+  - Encryption verification
+  - Security algorithm assessment
+
+## File Structure
+
+- /static
+  - /js: Frontend JavaScript modules
+  - /css: Styling
+- /templates: Jinja2 templates
+- /uploads: User HAR files
+- /logs: Application logs
+
+## Usage
+
+1. Register an account
+2. Upload HAR files through web interface
+3. Analyze requests, responses, and SAML messages
+4. Use filters and search to find specific traffic
+5. View detailed timing information and security analysis
+
+## Development
+
+- JavaScript modules use ES6 import/export
+- WebSocket handles real-time data streaming
+- Modular design for easy extension
+- Custom event handling for UI interactions
+
+## License
+
+MIT License
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
+2. Create feature branch
+3. Commit changes
+4. Push to branch
+5. Create Pull Request
 
-## License
+## Support
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
+File issues through the GitHub issue tracker
