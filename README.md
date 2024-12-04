@@ -1,115 +1,134 @@
-# HARRY Parser
+# HARRY - HAR Analyzer
 
-![HARRY Parser](https://img.shields.io/badge/HARRY-Parser-89CFF0?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
+HARRY is a powerful web-based HTTP Archive (HAR) file analyzer with special features for SAML traffic analysis and security assessment.
 
-HARRY Parser is a sophisticated HAR (HTTP Archive) file analyzer with special focus on SAML protocol analysis and visualization. Built with modern web technologies, it provides an intuitive interface for developers and security professionals to inspect network traffic and SAML authentication flows.
+## Features
 
-## 🚀 Features
+- 🔒 Secure user authentication and file management
+- 📊 Interactive HAR file visualization
+- 🔍 Advanced filtering and search capabilities
+- 🛡️ SAML traffic analysis and security validation
+- 📜 Certificate validation and analysis
+- 🔐 XML signature verification
+- 📋 One-click cURL command generation
+- ⏱️ Request timeline visualization
+- 🔄 Real-time WebSocket updates
 
-- **HAR File Analysis**
-  - Detailed request/response inspection
-  - Timeline visualization of network requests
-  - Advanced filtering and search capabilities
-  - cURL command generation
+## Prerequisites
 
-- **SAML Analysis**
-  - Deep SAML message parsing
-  - XML signature validation
-  - Certificate analysis and validation
-  - Encryption verification
-  - Security assessment reporting
+- Python 3.12+
+- Flask and dependencies
+- SQLite3
+- Modern web browser with JavaScript enabled
 
-- **User Experience**
-  - Dark mode interface
-  - Real-time filtering
-  - Keyboard navigation
-  - One-click copy functionality
-  - Responsive design
-
-## 🛠 Technology Stack
-
-- **Backend**: Flask, SQLAlchemy
-- **Frontend**: Vanilla JavaScript (ES6+), Chart.js
-- **Security**: Flask-Login, Werkzeug
-- **Styling**: Modern CSS with Grid/Flexbox
-
-## 🚦 Getting Started
+## Installation
 
 1. Clone the repository:
 ```bash
 git clone https://github.com/neledov/harry-parser.git
+cd harry-parser
 ```
 
-2. Install dependencies:
+2. Create and activate virtual environment:
+```bash
+python -m venv env
+source env/bin/activate  # On Windows: env\Scripts\activate
+```
+
+3. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Set up environment variables:
-```bash
-export SECRET_KEY="your-secret-key"
-```
-
 4. Initialize the database:
 ```bash
-flask db upgrade
+python
+>>> from app import app, db
+>>> with app.app_context():
+...     db.create_all()
+>>> exit()
 ```
 
-5. Run the application:
+## Running the Application
+
+Start the server:
 ```bash
-flask run
+python app.py
 ```
 
-## 💡 Usage
+Access the application at 'http://localhost:5000'
 
-1. Register/Login to your account
-2. Upload HAR files through the intuitive interface
-3. Navigate through requests using the left panel
-4. Analyze detailed request/response information
-5. Inspect SAML messages with security analysis
-6. Export requests as cURL commands
+## Project Structure
 
-## 🔒 Security Features
+```
+harry/
+├── app.py                 # Main Flask application
+├── models.py              # Database models
+├── requirements.txt       # Project dependencies
+├── static/
+│   ├── css/
+│   │   └── style.css     # Main stylesheet
+│   └── js/
+│       ├── bundle.js     # Main JavaScript bundle
+│       ├── handlers/
+│       │   └── requests.js
+│       ├── utils/
+│       │   ├── certificate-analyzer.js
+│       │   ├── curl.js
+│       │   ├── encryption-handler.js
+│       │   ├── helpers.js
+│       │   ├── html.js
+│       │   ├── saml-analyzer.js
+│       │   ├── saml-detector.js
+│       │   ├── saml.js
+│       │   └── signature-validator.js
+│       ├── visualization/
+│       │   └── chart.js
+│       ├── main.js
+│       ├── preload.js
+│       └── websocket.js
+├── templates/
+│   ├── base.html         # Base template
+│   ├── login.html        # Login page
+│   ├── macros.html       # Reusable template components
+│   ├── processing.html   # Processing status page
+│   ├── register.html     # Registration page
+│   ├── requests.html     # Main analysis view
+│   └── upload.html       # File upload page
+└── uploads/              # User uploaded files directory
+```
 
-- Secure file handling
-- User authentication and authorization
-- SAML security validation
-- Certificate chain verification
-- Encryption analysis
-- XML signature validation
+## Key Features
 
-## 🎯 Use Cases
+### HAR Analysis
+- Real-time HAR file parsing
+- Interactive request/response viewer
+- Timeline visualization
+- Advanced filtering and search
 
-- API debugging and testing
-- SAML integration troubleshooting
-- Security audit and compliance
-- Network traffic analysis
-- Performance monitoring
+### SAML Analysis
+- SAML message detection and decoding
+- Security validation
+- Certificate analysis
+- XML signature verification
+- Encryption validation
 
-## 🤝 Contributing
+### Security
+- User authentication
+- Secure file storage
+- Per-user file isolation
+- Input validation
+- XSS protection
 
-Contributions are welcome! Please feel free to submit pull requests.
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch
 3. Commit your changes
 4. Push to the branch
-5. Open a pull request
+5. Create a Pull Request
 
-## �� License
+## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-## ✨ Author
-
-**Anton Neledov**
-- GitHub: [@neledov](https://github.com/neledov)
-
-## 🙏 Acknowledgments
-
-Special thanks to all contributors and the open-source community for making this project possible.
-
----
-
-Made with ❤️ by Anton Neledov
