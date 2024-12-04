@@ -668,7 +668,7 @@ input:focus, select:focus, button:focus {
 }
 .saml-raw {
     margin: 20px 0;
-    font-size: 0.7em;
+    font-size: 0.8em;
     font-family: 'Consolas', monospace;
     line-height: 1.2;
 }
