@@ -125,7 +125,7 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
             )}</code></pre>
         </div>
         <div class="section">
-            <h2>Request Details</h2>
+            <h3>Request Details</h3>
             <p><strong>Method:</strong> ${escapeHTML(
               request.method || "N/A"
             )}</p>
@@ -136,7 +136,7 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
             </a></p>
         </div>
         <div class="section">
-            <h2>Response Details</h2>
+            <h3>Response Details</h3>
             <p><strong>Status:</strong> ${escapeHTML(
               String(response.status)
             )} ${escapeHTML(response.statusText || "")}</p>
@@ -222,7 +222,7 @@ export const generateSamlSection = (data) => {
 
   return `
       <div class="section saml-section">
-          <h2><i class="fas fa-shield-alt"></i> SAML Analysis</h2>
+          <h3><i class="fas fa-shield-alt"></i> SAML Analysis</h3>
             
           <!-- Quick Overview Panel -->
           <div class="saml-overview">
@@ -242,7 +242,6 @@ export const generateSamlSection = (data) => {
 
           <!-- Raw SAML Panel -->
           <div class="saml-raw">
-              <h3>Raw SAML XML</h3>
               <button class="copy-button" data-text="${encodeURIComponent(decoded)}" aria-label="Copy Raw SAML">
                   <i class="fas fa-copy"></i> Copy Raw SAML
               </button>
@@ -251,7 +250,6 @@ export const generateSamlSection = (data) => {
 
           <!-- Security Analysis Panel -->
           <div class="saml-security">
-              <h3>Security Analysis</h3>
               <div class="security-grid">
                   <div class="security-item ${securityAnalysis.validations.signature.status}">
                       <h4><i class="fas fa-signature"></i> Signature</h4>
@@ -302,31 +300,31 @@ export const generateSamlSection = (data) => {
               </div>
           ` : ''}
 
-          <!-- Conditions -->
-          ${samlData.conditions ? `
-              <div class="saml-conditions">
-                  <h3><i class="fas fa-clock"></i> Validity Conditions</h3>
-                  <div class="conditions-grid">
-                      <div class="condition-item">
-                          <strong>Valid From:</strong> 
-                          ${new Date(samlData.conditions.notBefore).toLocaleString()}
-                      </div>
-                      <div class="condition-item">
-                          <strong>Valid Until:</strong> 
-                          ${new Date(samlData.conditions.notOnOrAfter).toLocaleString()}
-                      </div>
-                      ${samlData.conditions.audiences.length ? `
-                          <div class="condition-item full-width">
-                              <strong>Audiences:</strong>
-                              <ul>
-                                  ${samlData.conditions.audiences.map(aud => 
-                                      `<li>${escapeHTML(aud)}</li>`).join('')}
-                              </ul>
-                          </div>
-                      ` : ''}
-                  </div>
-              </div>
-          ` : ''}
+<!-- Conditions -->
+${samlData.conditions ? `
+    <div class="saml-conditions">
+        <h3><i class="fas fa-clock"></i> Validity Conditions</h3>
+        <div class="conditions-grid">
+            ${renderTimestampValidation({
+                status: "valid",
+                notBefore: samlData.conditions.notBefore,
+                notOnOrAfter: samlData.conditions.notOnOrAfter,
+                isExpired: new Date() > new Date(samlData.conditions.notOnOrAfter),
+                isNotYetValid: new Date() < new Date(samlData.conditions.notBefore)
+            })}
+            ${samlData.conditions.audiences.length ? `
+                <div class="condition-item full-width">
+                    <strong>Audiences:</strong>
+                    <ul>
+                        ${samlData.conditions.audiences.map(aud => 
+                            `<li>${escapeHTML(aud)}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+        </div>
+    </div>
+` : ''}
+
       </div>
   `;
 };

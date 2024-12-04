@@ -1,21 +1,22 @@
 /* static/css/style.css */
 /* General Styles */
 body {
- font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
- background-color: #1E1E1E; /* Slightly lighter dark background */
- color: #CCCCCC; /* Soft light gray text */
+font-family: 'Consolas', monospace;
+ background-color: #1A1A1A;
+ color: #CCCCCC;
  margin: 0;
  padding-top: 60px; /* Space for fixed header */
 }
 .container {
  margin: 20px;
+ background-color: #1A1A1A;
 }
 /* Header Styles */
 header {
  position: fixed;
  top: 0;
  width: 100%;
- background-color: #2A2A2A; /* Dark gray */
+ background-color: #242424;
  padding: 10px 20px;
  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
  z-index: 1000;
@@ -30,10 +31,10 @@ header {
 }
 .header-left h1 a {
  text-decoration: none;
- color: #89CFF0; /* Pastel blue */
+ color: #CCCCCC;
 }
 .header-left h1 i {
- color: #89CFF0; /* Pastel blue */
+ color: #CCCCCC;
  margin-right: 10px;
 }
 .header-left .filename {
@@ -46,7 +47,7 @@ header {
  list-style-type: none;
  padding: 0;
  margin: 70px 0 10px 0;
- color: #FFB6C1; /* Pastel red */
+ color: #FF6961;
 }
 /* Upload Form */
 .upload-container {
@@ -61,7 +62,7 @@ form {
 }
 input[type="file"] {
  padding: 10px;
- border: 1px solid #4A4A4A;
+ border: 1px solid #333333;
  border-radius: 4px;
  background-color: #2A2A2A;
  color: #CCCCCC;
@@ -69,15 +70,15 @@ input[type="file"] {
 }
 input[type="submit"] {
  padding: 10px 20px;
- background-color: #89CFF0; /* Pastel blue */
- color: #1E1E1E;
+ background-color: #333333;
+ color: #CCCCCC;
  border: none;
  border-radius: 4px;
  cursor: pointer;
  transition: background-color 0.3s ease;
 }
 input[type="submit"]:hover {
- background-color: #77B7E5; /* Slightly darker pastel blue */
+ background-color: #404040;
 }
 /* Processing Message */
 .processing {
@@ -90,7 +91,7 @@ input[type="submit"]:hover {
 }
 #wizard-message {
  font-weight: bold;
- color: #89CFF0; /* Pastel blue */
+ color: #CCCCCC;
 }
 /* Main Content Layout */
 #main-content {
@@ -103,7 +104,7 @@ input[type="submit"]:hover {
  max-width: 33.33%;
  border-right: 1px solid #3A3A3A;
  overflow-y: auto;
- background-color: #2A2A2A;
+ background-color: #242424;
  padding: 10px;
 }
 #search {
@@ -111,8 +112,8 @@ input[type="submit"]:hover {
  padding: 8px;
  margin-bottom: 15px;
  border-radius: 4px;
- border: 1px solid #4A4A4A;
- background-color: #3A3A3A;
+ border: 1px solid #333333;
+ background-color: #2A2A2A;
  color: #CCCCCC;
 }
 #search::placeholder {
@@ -147,52 +148,30 @@ input[type="submit"]:hover {
  overflow: hidden;
  text-overflow: ellipsis;
  max-width: 100%;
+ font-size: 0.8em;
+ font-family: 'Consolas', monospace;
+ line-height: 1.2;
 }
 /* Method and Status Styles */
 .method {
  font-weight: bold;
-}
-/* Method Colors */
-.method.GET {
- color: #77DD77; /* Pastel green */
-}
-.method.POST {
- color: #89CFF0; /* Pastel blue */
-}
-.method.PUT {
- color: #FFB347; /* Pastel orange */
-}
-.method.DELETE {
- color: #FF6961; /* Pastel red */
-}
-.method.OTHER {
- color: #CFCFC4; /* Light gray */
+ color: #CCCCCC;
 }
 /* Status Colors */
 .status {
  font-size: 0.9em;
+ color: #CCCCCC;
 }
-.status.success {
- color: #77DD77; /* Pastel green */
-}
-.status.redirection {
- color: #FDFD96; /* Pastel yellow */
-}
+.status.server-error,
 .status.client-error {
- color: #FFB347; /* Pastel orange */
-}
-.status.server-error {
- color: #FF6961; /* Pastel red */
-}
-.status.unknown {
- color: #CFCFC4; /* Light gray */
+ color: #FF6961;
 }
 /* Error Request Highlight */
 #error-only:checked ~ #request-list li:not(.error-request) {
  display: none;
 }
 #request-list li.error-request {
- border-left: 4px solid #FF6961; /* Pastel red */
+ border-left: 4px solid #FF6961;
 }
 /* Filtering Controls */
 .filter-container {
@@ -205,15 +184,16 @@ input[type="submit"]:hover {
 .filter-container input[type="text"] {
  width: 99%;
  padding: 8px;
- background-color: #3A3A3A;
+ background-color: #2A2A2A;
  color: #CCCCCC;
- border: 1px solid #4A4A4A;
+ border: 1px solid #333333;
  border-radius: 4px;
 }
 .filter-container label.error-only-label {
  display: flex;
  align-items: center;
  color: #FF6961;
+ font-size: 0.9em;
 }
 .filter-container input[type="checkbox"] {
  margin-right: 5px;
@@ -223,7 +203,7 @@ input[type="submit"]:hover {
  flex: 1 1 66.66%;
  padding: 20px;
  overflow-y: auto;
- background-color: #1E1E1E;
+ background-color: #1A1A1A;
 }
 .right-panel h2, .right-panel h3 {
  color: #CCCCCC;
@@ -233,7 +213,7 @@ input[type="submit"]:hover {
  overflow: auto;
  border-radius: 5px;
  background-color: #2A2A2A;
- border: 1px solid #3A3A3A;
+ border: 1px solid #333333;
 }
 .right-panel pre code {
  display: block;
@@ -242,8 +222,8 @@ input[type="submit"]:hover {
 }
 .right-panel button.copy-button {
  margin-top: 10px;
- background-color: #89CFF0; /* Pastel blue */
- color: #1E1E1E;
+ background-color: #333333;
+ color: #CCCCCC;
  border: none;
  padding: 8px 12px;
  cursor: pointer;
@@ -251,7 +231,7 @@ input[type="submit"]:hover {
  transition: background-color 0.3s ease;
 }
 .right-panel button.copy-button:hover {
- background-color: #77B7E5; /* Slightly darker pastel blue */
+ background-color: #404040;
 }
 .right-panel ul {
  list-style-type: none;
@@ -263,7 +243,7 @@ input[type="submit"]:hover {
 /* Spinner Styles */
 .spinner {
  border: 8px solid #3A3A3A;
- border-top: 8px solid #89CFF0; /* Pastel blue */
+ border-top: 8px solid #CCCCCC;
  border-radius: 50%;
  width: 60px;
  height: 60px;
@@ -288,30 +268,33 @@ input[type="submit"]:hover {
 }
 /* Input and Button Styles */
 input, select, button {
- font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
- background-color: #3A3A3A;
+font-family: 'Consolas', monospace;
+ background-color: #2A2A2A;
  color: #CCCCCC;
- border: 1px solid #4A4A4A;
+ border: 1px solid #333333;
  padding: 8px;
  border-radius: 4px;
 }
 input:focus, select:focus, button:focus {
  outline: none;
- border-color: #89CFF0;
- box-shadow: 0 0 0 0.2rem rgba(137,207,240,0.25);
+ border-color: #CCCCCC;
+ box-shadow: 0 0 0 0.2rem rgba(204,204,204,0.25);
 }
 /* Focus styles for accessibility */
 .user-is-tabbing #request-list li:focus {
- outline: 2px dashed #89CFF0;
+ outline: 2px dashed #CCCCCC;
  outline-offset: 2px;
 }
 /* Section Styling */
 .section {
- background-color: #2A2A2A;
+ background-color: #242424;
  border: 1px solid #3A3A3A;
  border-radius: 8px;
  padding: 15px;
  margin-bottom: 20px;
+ font-size: 0.8em;
+ font-family: 'Consolas', monospace;
+ line-height: 1.2;
 }
 .section h2, .section h3 {
  border-bottom: 1px solid #3A3A3A;
@@ -319,20 +302,20 @@ input:focus, select:focus, button:focus {
  margin-bottom: 15px;
 }
 .section a {
- color: #89CFF0;
+ color: #CCCCCC;
  text-decoration: none;
 }
 .section a:hover {
  text-decoration: underline;
 }
 .error {
- color: #FFB6C1; /* Pastel red */
+ color: #FF6961;
  font-weight: bold;
 }
 /* cURL Button Styling */
 .curl-button {
- background-color: #FFB347; /* Pastel orange */
- color: #1E1E1E;
+ background-color: #333333;
+ color: #CCCCCC;
  border: none;
  padding: 10px 20px;
  cursor: pointer;
@@ -341,7 +324,7 @@ input:focus, select:focus, button:focus {
  transition: background-color 0.3s ease;
 }
 .curl-button:hover {
- background-color: #E6A347; /* Slightly darker pastel orange */
+ background-color: #404040;
 }
 /* Timeline Chart Styling */
 .chart-container {
@@ -360,8 +343,8 @@ input:focus, select:focus, button:focus {
  bottom: 20px;
  left: 50%;
  transform: translateX(-50%);
- background-color: #77DD77; /* Pastel green */
- color: #1E1E1E;
+ background-color: #333333;
+ color: #CCCCCC;
  padding: 10px 20px;
  border-radius: 5px;
  z-index: 1000;
@@ -376,20 +359,20 @@ input:focus, select:focus, button:focus {
 }
 
 .copy-message.error {
- background-color: #FFB6C1; /* Pastel red */
+ background-color: #FF6961;
 }
  /* Add to existing style.css */
  .auth-container {
  max-width: 400px;
  margin: 100px auto;
  padding: 20px;
- background-color: #2A2A2A;
+ background-color: #242424;
  border-radius: 8px;
  box-shadow: 0 2px 4px rgba(0,0,0,0.5);
  }
  .auth-container h2 {
  text-align: center;
- color: #89CFF0;
+ color: #CCCCCC;
  margin-bottom: 20px;
  }
  .form-group {
@@ -398,16 +381,16 @@ input:focus, select:focus, button:focus {
  .form-group input {
  width: 95%;
  padding: 10px;
- border: 1px solid #4A4A4A;
+ border: 1px solid #333333;
  border-radius: 4px;
- background-color: #3A3A3A;
+ background-color: #2A2A2A;
  color: #CCCCCC;
  }
  .auth-container input[type="submit"] {
  width: 100%;
  padding: 10px;
- background-color: #89CFF0;
- color: #1E1E1E;
+ background-color: #333333;
+ color: #CCCCCC;
  border: none;
  border-radius: 4px;
  cursor: pointer;
@@ -417,17 +400,17 @@ input:focus, select:focus, button:focus {
  margin-top: 15px;
  }
  .auth-container a {
- color: #89CFF0;
+ color: #CCCCCC;
  text-decoration: none;
  }
  .files-list {
  margin-top: 30px;
- background-color: #2A2A2A;
+ background-color: #242424;
  padding: 20px;
  border-radius: 8px;
  }
  .files-list h3 {
- color: #89CFF0;
+ color: #CCCCCC;
  margin-bottom: 15px;
  }
  .files-list ul {
@@ -449,7 +432,7 @@ input:focus, select:focus, button:focus {
  text-decoration: none;
  }
  .files-list a:hover {
- color: #89CFF0;
+ color: #CCCCCC;
  }
  .upload-date {
  color: #888888;
@@ -462,7 +445,7 @@ input:focus, select:focus, button:focus {
  gap: 20px;
  }
  .username {
- color: #89CFF0;
+ color: #CCCCCC;
  font-weight: bold;
  }
  .logout-btn {
@@ -474,8 +457,16 @@ input:focus, select:focus, button:focus {
  transition: color 0.3s ease;
  }
  .logout-btn:hover {
- color: #89CFF0;
+ color: #CCCCCC;
  }
+.delete-btn {
+ color: #FF6961;
+ cursor: pointer;
+ transition: color 0.3s ease;
+}
+.delete-btn:hover {
+ color: #FF6961;
+}
  .delete-btn {
  color: #FF6961;
  cursor: pointer;
@@ -503,7 +494,7 @@ input:focus, select:focus, button:focus {
  color: #9370DB;
  }
  .saml-section h3 {
- color: #89CFF0;
+ color: #CCCCCC;
  margin-top: 15px;
  }
  .saml-details {
@@ -569,7 +560,7 @@ input:focus, select:focus, button:focus {
     padding: 10px;
     background: #2A2A2A;
     border-radius: 4px;
-    border-left: 4px solid #89CFF0;
+    border-left: 4px solid #CCCCCC;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -601,12 +592,28 @@ input:focus, select:focus, button:focus {
  margin-top: 10px;
 }
 .attribute-item {
- background: #2A2A2A;
- padding: 10px;
- border-radius: 4px;
- display: flex;
- flex-direction: column;
- gap: 5px;
+    background: #2A2A2A;
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    overflow: hidden;
+}
+
+.attribute-item strong, 
+.attribute-item span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.3s ease;
+}
+
+.attribute-item:hover strong,
+.attribute-item:hover span {
+    white-space: normal;
+    overflow: visible;
+    word-wrap: break-word;
 }
 .conditions-grid {
  display: grid;
@@ -637,6 +644,7 @@ input:focus, select:focus, button:focus {
  display: flex;
  justify-content: space-between;
  align-items: center;
+ font-size: 0.9em;
 }
 .cert-status {
  padding: 3px 8px;
@@ -659,7 +667,10 @@ input:focus, select:focus, button:focus {
  font-size: 0.9em;
 }
 .saml-raw {
- margin: 20px 0;
+    margin: 20px 0;
+    font-size: 0.7em;
+    font-family: 'Consolas', monospace;
+    line-height: 1.2;
 }
 .saml-raw .copy-button {
  margin-bottom: 10px;
@@ -737,6 +748,7 @@ input:focus, select:focus, button:focus {
  align-items: center;
  color: #9370DB;
  margin-top: 5px;
+ font-size: 0.9em;
 }
 .saml-only-label input[type="checkbox"] {
  margin-right: 5px;
@@ -772,7 +784,7 @@ header {
 
 .progress-bar {
     height: 100%;
-    background: #89CFF0;
+    background: #CCCCCC;
     width: 0;
     transition: width 0.3s ease;
 }
@@ -782,7 +794,7 @@ header {
     right: 10px;
     top: 5px;
     font-size: 0.8em;
-    color: #89CFF0;
+    color: #CCCCCC;
 }
 
 .secondary-panel {
@@ -807,7 +819,7 @@ header {
 }
 
 .search-count {
-    color: #89CFF0;
+    color: #CCCCCC;
     font-size: 0.9em;
 }
 
@@ -866,7 +878,7 @@ header {
 }
 
 .result-snippet mark {
-    background: #89CFF0;
+    background: #CCCCCC;
     color: #1E1E1E;
     padding: 0 2px;
     border-radius: 2px;
@@ -891,7 +903,7 @@ header {
 }
 
 .search-count {
-    color: #89CFF0;
+    color: #CCCCCC;
     font-size: 0.9em;
     min-width: 100px;
 }
