@@ -1,6 +1,6 @@
 # HARRY - HAR Analyzer
 
-HARRY is a powerful web-based HTTP Archive (HAR) file analyzer with special features for SAML traffic analysis and security assessment.
+HARRY is a web-based HTTP Archive (HAR) file analyzer.
 
 ## Features
 
