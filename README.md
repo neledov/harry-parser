@@ -37,29 +37,29 @@ HARRY Parser is a sophisticated HAR (HTTP Archive) file analyzer with special fo
 ## 🚦 Getting Started
 
 1. Clone the repository:
-\`\`\`bash
+```bash
 git clone https://github.com/neledov/harry-parser.git
-\`\`\`
+```
 
 2. Install dependencies:
-\`\`\`bash
+```bash
 pip install -r requirements.txt
-\`\`\`
+```
 
 3. Set up environment variables:
-\`\`\`bash
+```bash
 export SECRET_KEY="your-secret-key"
-\`\`\`
+```
 
 4. Initialize the database:
-\`\`\`bash
+```bash
 flask db upgrade
-\`\`\`
+```
 
 5. Run the application:
-\`\`\`bash
+```bash
 flask run
-\`\`\`
+```
 
 ## 💡 Usage
 
