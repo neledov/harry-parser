@@ -1,122 +1,115 @@
-# HARRY - HAR File Analyzer 🧙‍♂️
+# HARRY Parser
 
-Efficiently analyze your HAR files.
+![HARRY Parser](https://img.shields.io/badge/HARRY-Parser-89CFF0?style=for-the-badge)
+![License](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)
 
-## Features 🎩
+HARRY Parser is a sophisticated HAR (HTTP Archive) file analyzer with special focus on SAML protocol analysis and visualization. Built with modern web technologies, it provides an intuitive interface for developers and security professionals to inspect network traffic and SAML authentication flows.
 
-- **HAR file upload** 
-- **Request/response analysis** 
-- **SAML/SSO detection** 
-- **Timeline visualization**
-- **Advanced filters**:
-  - **HTTP methods** 
-  - **Status codes**
-  - **Content types** 
-  - **SAML flows** 
-  - **Error requests** 
-- **Syntax highlighting** 
-- **cURL generation** 
-- **Certificate analysis** 
-- **Multi-user support** 
+## 🚀 Features
 
-## Tech Stack 🎨
+- **HAR File Analysis**
+  - Detailed request/response inspection
+  - Timeline visualization of network requests
+  - Advanced filtering and search capabilities
+  - cURL command generation
 
-- **Backend**: Python / Flask
-- **Frontend**: JavaScript
-- **Database**: SQLite
-- **UI**: Custom CSS
-- **Libraries**:
-  - Chart.js
-  - Prism.js
-  - Font Awesome
+- **SAML Analysis**
+  - Deep SAML message parsing
+  - XML signature validation
+  - Certificate analysis and validation
+  - Encryption verification
+  - Security assessment reporting
 
-## Installation 🚀
+- **User Experience**
+  - Dark mode interface
+  - Real-time filtering
+  - Keyboard navigation
+  - One-click copy functionality
+  - Responsive design
 
-**Clone the repository:**
+## 🛠 Technology Stack
 
-```bash
+- **Backend**: Flask, SQLAlchemy
+- **Frontend**: Vanilla JavaScript (ES6+), Chart.js
+- **Security**: Flask-Login, Werkzeug
+- **Styling**: Modern CSS with Grid/Flexbox
+
+## 🚦 Getting Started
+
+1. Clone the repository:
+\`\`\`bash
 git clone https://github.com/neledov/harry-parser.git
-cd harry-parser
-```
+\`\`\`
 
-**Create a virtual environment:**
-
-For Linux/Mac:
-
-```bash
-python -m venv venv
-source venv/bin/activate
-```
-
-For Windows:
-
-```bash
-python -m venv venv
-venv\Scripts\activate
-```
-
-**Install dependencies:**
-
-```bash
+2. Install dependencies:
+\`\`\`bash
 pip install -r requirements.txt
-```
+\`\`\`
 
-**Initialize the database:**
+3. Set up environment variables:
+\`\`\`bash
+export SECRET_KEY="your-secret-key"
+\`\`\`
 
-```bash
-flask db init
-flask db migrate
+4. Initialize the database:
+\`\`\`bash
 flask db upgrade
-```
+\`\`\`
 
-**Launch the application:**
+5. Run the application:
+\`\`\`bash
+flask run
+\`\`\`
 
-```bash
-python3 app.py
-```
+## 💡 Usage
 
-Access at `http://localhost:5000`.
+1. Register/Login to your account
+2. Upload HAR files through the intuitive interface
+3. Navigate through requests using the left panel
+4. Analyze detailed request/response information
+5. Inspect SAML messages with security analysis
+6. Export requests as cURL commands
 
-## Project Structure 🏰
+## 🔒 Security Features
 
-```
-harry-parser/
-├── app.py          # Main app
-├── models.py       # Data models
-├── static/         # Static assets
-│   ├── css/        # Stylesheets
-│   └── js/         # JavaScript
-├── templates/      # HTML templates
-├── uploads/        # HAR files
-└── logs/           # Logs
-```
+- Secure file handling
+- User authentication and authorization
+- SAML security validation
+- Certificate chain verification
+- Encryption analysis
+- XML signature validation
 
-## Environment Variables 🧪
+## 🎯 Use Cases
 
-Create a `.env` file:
+- API debugging and testing
+- SAML integration troubleshooting
+- Security audit and compliance
+- Network traffic analysis
+- Performance monitoring
 
-```env
-SECRET_KEY=your_secret_key
-FLASK_ENV=development
-```
+## 🤝 Contributing
 
-## Development 🛠️
+Contributions are welcome! Please feel free to submit pull requests.
 
-- Clean Python code.
-- Modern JavaScript (ES6+).
-- Responsive CSS.
-- Thorough documentation.
-- Update dependencies.
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Open a pull request
 
-## License 📜
+## �� License
 
-MIT License
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-## Author 🧙‍♂️
+## ✨ Author
 
 **Anton Neledov**
+- GitHub: [@neledov](https://github.com/neledov)
 
-- **GitHub**: [neledov](https://github.com/neledov/harry-parser)
-- **Status**: HAR Parser Developer
+## 🙏 Acknowledgments
+
+Special thanks to all contributors and the open-source community for making this project possible.
 
 ---
+
+Made with ❤️ by Anton Neledov
