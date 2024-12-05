@@ -19,6 +19,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body>
+    <div id="page-loading-spinner" class="loading-overlay">
+        <div class="spinner"></div>
+    </div>
     <header>
         <div class="header-left">
             <h1>
@@ -62,5 +65,14 @@
             crossorigin="anonymous"></script>
     <script type="module" src="{{ url_for('static', filename='js/preload.js') }}"></script>
     <script type="module" src="{{ url_for('static', filename='js/bundle.js') }}" defer></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('page-loading-spinner').style.display = 'none';
+        });
+        
+        window.addEventListener('beforeunload', () => {
+            document.getElementById('page-loading-spinner').style.display = 'flex';
+        });
+    </script>
 </body>
 </html>
