@@ -1,8 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="upload-container">
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="upload-form">
         <input type="file" name="harfile" accept=".har" aria-label="Upload HAR File" required>
+        <div class="upload-progress hidden">
+            <div class="progress-bar"></div>
+            <div class="progress-details">
+                <span class="upload-percentage">0%</span>
+                <span class="time-remaining"></span>
+            </div>
+        </div>
         <input type="submit" value="Upload">
     </form>
     
@@ -36,7 +43,12 @@
 
 <script type="module">
     import { debounce } from '/static/js/utils/helpers.js';
+    import { handleFileUpload } from '/static/js/utils/upload.js';
     
+    // Initialize file upload handler
+    handleFileUpload();
+    
+    // Setup file search functionality
     const fileSearch = document.getElementById("file-search");
     if (fileSearch) {
         fileSearch.addEventListener("input", debounce(() => {

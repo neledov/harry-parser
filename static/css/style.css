@@ -1053,3 +1053,35 @@ body {
       background: #404040;
   }
   
+  .upload-progress {
+    margin: 20px 0;
+    background: #2A2A2A;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 20px;
+    position: relative;
+}
+
+.progress-details {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    color: #CCCCCC;
+    font-size: 0.8em;
+    z-index: 1;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #CCCCCC;
+    width: 0;
+    transition: width 0.3s ease;
+    position: absolute;
+    opacity: 0.3;
+}

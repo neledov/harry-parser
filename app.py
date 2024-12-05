@@ -22,6 +22,7 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_default_secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///harry.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
+app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
 
 # Compression settings
 app.config['COMPRESS_ALGORITHM'] = 'gzip'
@@ -164,38 +165,47 @@ def logout():
 def upload_file():
     if request.method == 'POST':
         if 'harfile' not in request.files:
-            flash('No file part')
-            return redirect(request.url)
+            return jsonify({'error': 'No file part'}), 400
             
         file = request.files['harfile']
         if file.filename == '':
-            flash('No selected file')
-            return redirect(request.url)
+            return jsonify({'error': 'No selected file'}), 400
             
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+            try:
+                filename = secure_filename(file.filename)
+                user_upload_dir = current_user.get_user_upload_folder()
+                Path(user_upload_dir).mkdir(parents=True, exist_ok=True)
+                
+                filepath = os.path.join(user_upload_dir, filename)
+                
+                # Stream the file to disk in chunks
+                chunk_size = 8192
+                file_size = 0
+                with open(filepath, 'wb') as f:
+                    while True:
+                        chunk = file.stream.read(chunk_size)
+                        if not chunk:
+                            break
+                        file_size += len(chunk)
+                        f.write(chunk)
+                
+                har_file = HARFile(
+                    filename=filename,
+                    filesize=file_size,
+                    user_id=current_user.id
+                )
+                db.session.add(har_file)
+                db.session.commit()
+                
+                logging.info(f"User {current_user.username} uploaded HAR file: {filename}")
+                return jsonify({'filename': filename, 'success': True})
+                
+            except Exception as e:
+                logging.error(f"Upload error: {str(e)}")
+                return jsonify({'error': 'Upload failed'}), 500
             
-            user_upload_dir = current_user.get_user_upload_folder()
-            Path(user_upload_dir).mkdir(parents=True, exist_ok=True)
-            
-            filepath = os.path.join(user_upload_dir, filename)
-            file.save(filepath)
-            
-            filesize = os.path.getsize(filepath)
-            
-            har_file = HARFile(
-                filename=filename,
-                filesize=filesize,
-                user_id=current_user.id
-            )
-            db.session.add(har_file)
-            db.session.commit()
-            
-            logging.info(f"User {current_user.username} uploaded HAR file: {filename}")
-            return redirect(url_for('processing', filename=filename))
-            
-        flash('Invalid file type. Please upload a .har file.')
-        return redirect(request.url)
+        return jsonify({'error': 'Invalid file type'}), 400
         
     user_files = get_user_files(current_user.id)
     return render_template('upload.html', app_name='HARRY', files=user_files)
