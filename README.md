@@ -27,8 +27,8 @@ HARRY is an offline web-based HTTP Archive (HAR) file analyzer with a special fo
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/harry.git
-   cd harry
+   git clone https://github.com/neledov/harry-parser.git
+   cd harry-parser
    ```
 
 2. Create and activate a virtual environment:
