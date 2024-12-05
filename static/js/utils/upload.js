@@ -85,7 +85,7 @@ export const handleFileUpload = () => {
         xhr.upload.onloadend = () => {
             progressBar.style.width = '100%';
             percentageDisplay.textContent = '100%';
-            timeDisplay.textContent = 'Processing...';
+            timeDisplay.textContent = 'Redirecting to processing and results';
         };
 
         xhr.onload = function() {
