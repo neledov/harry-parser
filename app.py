@@ -6,6 +6,7 @@ eventlet.monkey_patch()
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit
+from flask_compress import Compress
 from models import db, User, HARFile
 import os
 import json
@@ -21,10 +22,27 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_default_secret_key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///harry.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# Compression settings
+app.config['COMPRESS_ALGORITHM'] = 'gzip'
+app.config['COMPRESS_MIMETYPES'] = [
+    'text/html',
+    'text/css',
+    'text/xml',
+    'application/json',
+    'application/javascript',
+    'application/x-javascript',
+    'application/xml',
+    'application/samlrequest'
+]
+app.config['COMPRESS_LEVEL'] = 6
+app.config['COMPRESS_MIN_SIZE'] = 500
+
 ALLOWED_EXTENSIONS = {'har'}
 
 # Initialize extensions with app context
 with app.app_context():
+    Compress(app)
     db.init_app(app)
     socketio = SocketIO(app, 
         async_mode='eventlet',
@@ -82,7 +100,7 @@ def handle_har_request(data):
             har_data = json.load(f)
             entries = har_data.get('log', {}).get('entries', [])
             
-            chunk_size = 100
+            chunk_size = 25  # Optimized chunk size
             total_entries = len(entries)
             
             for i in range(0, total_entries, chunk_size):

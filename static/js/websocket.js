@@ -8,7 +8,13 @@ export class HARSocketClient {
             upgrade: false,
             forceNew: true,
             reconnectionDelay: 1000,
-            reconnectionDelayMax: 5000
+            reconnectionDelayMax: 5000,
+            headers: {
+                'Accept-Encoding': 'gzip, deflate'
+            },
+            perMessageDeflate: {
+                threshold: 1024
+            }
         });
         this.dataCache = {};
         this.currentIndex = 0;
