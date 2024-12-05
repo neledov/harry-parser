@@ -57,8 +57,30 @@ const setupEventListeners = () => {
     });
 };
 
+// Enhanced page loading management
+const handlePageLoading = () => {
+    const loadingOverlay = document.getElementById('page-loading-spinner');
+    
+    if (loadingOverlay) {
+        document.addEventListener('readystatechange', () => {
+            if (document.readyState === 'interactive') {
+                document.body.style.opacity = '0';
+                loadingOverlay.style.display = 'flex';
+            }
+            if (document.readyState === 'complete') {
+                setTimeout(() => {
+                    document.body.style.opacity = '1';
+                    loadingOverlay.style.display = 'none';
+                }, 100);
+            }
+        });
+    }
+};
+
 // Initialize application with performance optimization and IndexedDB
 document.addEventListener('DOMContentLoaded', async () => {
+    handlePageLoading();
+    
     const requestDetail = document.getElementById("request-detail");
     if (requestDetail) {
         window.filename = requestDetail.dataset.filename;
@@ -79,12 +101,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Performance optimized readystate handler
-const readyStateHandler = debounce((event) => {
+const readyStateHandler = debounce(() => {
     if (document.readyState === 'interactive') {
-        document.getElementById('page-loading-spinner').style.display = 'none';
+        initializeSearchFeatures();
     }
     if (document.readyState === 'complete') {
-        initializeSearchFeatures();
         setupEventListeners();
     }
 }, 50);
@@ -109,6 +130,13 @@ function navigateRequests(direction) {
         loadRequestDetail(nextRequest.dataset.index);
     }
 }
+
+// Page visibility handling
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        document.body.style.opacity = '1';
+    }
+});
 
 // Export all utilities for global access
 window.HARRY = {
@@ -136,7 +164,8 @@ window.HARRY = {
         updateSelectedRequest
     },
     performance: {
-        readyStateHandler
+        readyStateHandler,
+        handlePageLoading
     },
     db: HarDatabase
 };
