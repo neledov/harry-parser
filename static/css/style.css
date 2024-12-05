@@ -1014,3 +1014,26 @@ body {
       display: block;
   }
   
+  .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(26, 26, 26, 0.8);
+      z-index: 9999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+  }
+  
+  .loading-overlay .spinner {
+      margin-bottom: 20px;
+  }
+  
+  .loading-overlay .loading-text {
+      color: #CCCCCC;
+      font-size: 1.2em;
+  }
+  

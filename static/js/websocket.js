@@ -6,6 +6,17 @@ export class HARSocketClient {
         this.socket = io();
         this.dataCache = {};
         this.setupListeners();
+        this.showLoadingOverlay();
+    }
+
+    showLoadingOverlay() {
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.style.display = 'flex';
+    }
+
+    hideLoadingOverlay() {
+        const overlay = document.getElementById('loading-overlay');
+        if (overlay) overlay.style.display = 'none';
     }
 
     setupListeners() {
@@ -71,6 +82,7 @@ export class HARSocketClient {
         }
 
         if (isLast) {
+            this.hideLoadingOverlay();
             document.querySelector('.progress-container').classList.add('hidden');
             window.requestCache = this.dataCache;
             
