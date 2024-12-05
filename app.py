@@ -1,3 +1,8 @@
+# First, import and patch eventlet
+import eventlet
+eventlet.monkey_patch()
+
+# Then import all other modules
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from flask_socketio import SocketIO, emit
@@ -8,7 +13,9 @@ from werkzeug.utils import secure_filename
 import logging
 from datetime import datetime
 from pathlib import Path
+from OpenSSL import crypto
 
+# Create Flask app first
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_default_secret_key')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///harry.db'
@@ -16,11 +23,19 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'uploads'
 ALLOWED_EXTENSIONS = {'har'}
 
-db.init_app(app)
-socketio = SocketIO(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
+# Initialize extensions with app context
+with app.app_context():
+    db.init_app(app)
+    socketio = SocketIO(app, 
+        async_mode='eventlet',
+        ping_timeout=60,
+        ping_interval=25,
+        max_http_buffer_size=1e8,
+        cors_allowed_origins="*"
+    )
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'login'
 
 if not os.path.exists('logs'):
     os.makedirs('logs')
@@ -67,8 +82,7 @@ def handle_har_request(data):
             har_data = json.load(f)
             entries = har_data.get('log', {}).get('entries', [])
             
-            # Stream entries in chunks
-            chunk_size = 50
+            chunk_size = 100
             total_entries = len(entries)
             
             for i in range(0, total_entries, chunk_size):
@@ -213,7 +227,35 @@ def requests_page(filename):
                          app_name='HARRY', 
                          filename=filename)
 
+def generate_certificates():
+    key = crypto.PKey()
+    key.generate_key(crypto.TYPE_RSA, 2048)
+    
+    cert = crypto.X509()
+    cert.get_subject().CN = '127.0.0.1'
+    cert.set_serial_number(1000)
+    cert.gmtime_adj_notBefore(0)
+    cert.gmtime_adj_notAfter(365*24*60*60)
+    cert.set_issuer(cert.get_subject())
+    cert.set_pubkey(key)
+    cert.sign(key, 'sha256')
+    
+    with open('cert.pem', 'wb') as f:
+        f.write(crypto.dump_certificate(crypto.FILETYPE_PEM, cert))
+    with open('key.pem', 'wb') as f:
+        f.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, key))
+
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     os.makedirs('logs', exist_ok=True)
-    socketio.run(app, debug=True)
+    
+    if not os.path.exists('cert.pem'):
+        generate_certificates()
+    
+    socketio.run(app,
+        debug=True,
+        certfile='cert.pem',
+        keyfile='key.pem',
+        host='127.0.0.1',
+        port=8443
+    )

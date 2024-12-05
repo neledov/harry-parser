@@ -14,14 +14,15 @@ import { loadRequestDetail, filterRequests, deleteFile, renderRequestDetail, upd
 // Cache container
 window.requestCache = null;
 
-// Initialize application
-document.addEventListener('DOMContentLoaded', () => {
-    const requestDetail = document.getElementById("request-detail");
-    if (requestDetail) {
-        window.filename = requestDetail.dataset.filename;
+// Performance optimized initialization
+const initializeSearchFeatures = () => {
+    const searchInput = document.getElementById("search");
+    if (searchInput) {
+        searchInput.addEventListener("input", debounce(filterRequests, 300));
     }
+};
 
-    // Setup request list handlers
+const setupEventListeners = () => {
     const requestList = document.getElementById("request-list");
     if (requestList) {
         requestList.addEventListener("click", e => {
@@ -32,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Setup filters
     ["method-filter", "status-filter", "content-type-filter", "error-only", "saml-only"].forEach(id => {
         const element = document.getElementById(id);
         if (element) {
@@ -40,13 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Setup search with debounce
-    const searchInput = document.getElementById("search");
-    if (searchInput) {
-        searchInput.addEventListener("input", debounce(filterRequests, 300));
-    }
-
-    // Setup file deletion
     const filesList = document.getElementById("files-list");
     if (filesList) {
         filesList.addEventListener("click", e => {
@@ -55,7 +48,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Handle processing redirect
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            navigateRequests(e.key === 'ArrowUp' ? -1 : 1);
+        }
+    });
+};
+
+// Initialize application with performance optimization
+document.addEventListener('DOMContentLoaded', () => {
+    const requestDetail = document.getElementById("request-detail");
+    if (requestDetail) {
+        window.filename = requestDetail.dataset.filename;
+    }
+
     if (window.location.pathname.startsWith("/processing/")) {
         const filename = window.location.pathname.split("/").pop();
         if (filename) {
@@ -64,15 +71,39 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 2000);
         }
     }
-
-    // Keyboard navigation
-    document.addEventListener('keydown', e => {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-            e.preventDefault();
-            navigateRequests(e.key === 'ArrowUp' ? -1 : 1);
-        }
-    });
 });
+
+// Performance optimized readystate handler
+const readyStateHandler = debounce((event) => {
+    if (document.readyState === 'interactive') {
+        document.getElementById('page-loading-spinner').style.display = 'none';
+    }
+    if (document.readyState === 'complete') {
+        initializeSearchFeatures();
+        setupEventListeners();
+    }
+}, 50);
+
+document.addEventListener('readystatechange', readyStateHandler);
+
+// Navigation helper
+function navigateRequests(direction) {
+    const visibleRequests = Array.from(document.querySelectorAll('#request-list li:not([style*="display: none"])'));
+    const currentSelected = document.querySelector('#request-list li.selected');
+    
+    if (!visibleRequests.length) return;
+    
+    let nextIndex = 0;
+    if (currentSelected) {
+        const currentIndex = visibleRequests.indexOf(currentSelected);
+        nextIndex = (currentIndex + direction + visibleRequests.length) % visibleRequests.length;
+    }
+    
+    const nextRequest = visibleRequests[nextIndex];
+    if (nextRequest && nextRequest.dataset.index) {
+        loadRequestDetail(nextRequest.dataset.index);
+    }
+}
 
 // Export all utilities for global access
 window.HARRY = {
@@ -98,24 +129,8 @@ window.HARRY = {
         deleteFile,
         renderRequestDetail,
         updateSelectedRequest
+    },
+    performance: {
+        readyStateHandler
     }
 };
-
-// Navigation helper
-function navigateRequests(direction) {
-    const visibleRequests = Array.from(document.querySelectorAll('#request-list li:not([style*="display: none"])'));
-    const currentSelected = document.querySelector('#request-list li.selected');
-    
-    if (!visibleRequests.length) return;
-    
-    let nextIndex = 0;
-    if (currentSelected) {
-        const currentIndex = visibleRequests.indexOf(currentSelected);
-        nextIndex = (currentIndex + direction + visibleRequests.length) % visibleRequests.length;
-    }
-    
-    const nextRequest = visibleRequests[nextIndex];
-    if (nextRequest && nextRequest.dataset.index) {
-        loadRequestDetail(nextRequest.dataset.index);
-    }
-}

@@ -3,8 +3,18 @@ import { generateRequestListItem } from './utils/html.js';
 
 export class HARSocketClient {
     constructor() {
-        this.socket = io();
+        this.socket = io({
+            transports: ['websocket'],
+            upgrade: false,
+            forceNew: true,
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000
+        });
         this.dataCache = {};
+        this.currentIndex = 0;
+        this.batchSize = 5;
+        this.renderQueue = [];
+        this.isRendering = false;
         this.setupListeners();
         this.showLoadingOverlay();
     }
@@ -40,63 +50,96 @@ export class HARSocketClient {
     }
 
     handleDataChunk(data) {
-        const { chunk, progress, isLast, totalEntries } = data;
+        const { chunk, progress, isLast } = data;
+        this.updateProgressBar(progress);
         
-        // Update progress bar
+        for (let i = 0; i < chunk.length; i += this.batchSize) {
+            const batch = chunk.slice(i, i + this.batchSize);
+            this.renderQueue.push(batch);
+        }
+
+        if (!this.isRendering) {
+            this.processRenderQueue();
+        }
+
+        if (isLast) {
+            this.finalizeLoading();
+        }
+    }
+
+    updateProgressBar(progress) {
         const progressBar = document.querySelector('.progress-bar');
         const progressText = document.querySelector('.progress-text');
         if (progressBar && progressText) {
             progressBar.style.width = `${progress}%`;
             progressText.textContent = `Loading: ${Math.round(progress)}%`;
         }
+    }
 
-        // Cache the received chunk and update request list
-        const requestList = document.getElementById('request-list');
-        if (requestList) {
-            chunk.forEach((entry, index) => {
-                const globalIndex = Object.keys(this.dataCache).length;
-                this.dataCache[globalIndex] = {
-                    request: entry.request,
-                    response: entry.response,
-                    timings: entry.timings
-                };
-                
-                const li = document.createElement('li');
-                li.dataset.index = globalIndex;
-                li.dataset.statusCode = entry.response.status;
-                li.dataset.contentType = entry.response.content?.mimeType || '';
-                
-                if (entry.response.status >= 400) {
-                    li.classList.add('error-request');
-                }
-                
-                // Add SAML detection
-                if (window.HARRY.utils.saml.isRequest(entry.request) || 
-                    window.HARRY.utils.saml.isResponse(entry.response)) {
-                    li.classList.add('saml-request');
-                }
-                
-                li.innerHTML = generateRequestListItem(entry);
-                requestList.appendChild(li);
-            });
+    processRenderQueue() {
+        this.isRendering = true;
+        
+        if (this.renderQueue.length === 0) {
+            this.isRendering = false;
+            return;
         }
 
-        if (isLast) {
-            this.hideLoadingOverlay();
-            document.querySelector('.progress-container').classList.add('hidden');
-            window.requestCache = this.dataCache;
+        const batch = this.renderQueue.shift();
+        requestAnimationFrame(() => {
+            this.processBatch(batch);
+            setTimeout(() => this.processRenderQueue(), 0);
+        });
+    }
+
+    processBatch(batch) {
+        const requestList = document.getElementById('request-list');
+        if (!requestList) return;
+
+        const fragment = document.createDocumentFragment();
+
+        batch.forEach((entry, index) => {
+            const globalIndex = this.currentIndex + index;
+            this.dataCache[globalIndex] = {
+                request: entry.request,
+                response: entry.response,
+                timings: entry.timings
+            };
             
-            // Apply any active filters after loading
-            if (window.HARRY.handlers.filterRequests) {
-                window.HARRY.handlers.filterRequests();
+            const li = document.createElement('li');
+            li.dataset.index = globalIndex;
+            li.dataset.statusCode = entry.response?.status || '';
+            li.dataset.contentType = entry.response?.content?.mimeType || '';
+            
+            if (entry.response?.status >= 400) {
+                li.classList.add('error-request');
             }
+            
+            if (window.HARRY.utils.saml.isRequest(entry.request) || 
+                window.HARRY.utils.saml.isResponse(entry.response)) {
+                li.classList.add('saml-request');
+            }
+            
+            li.innerHTML = generateRequestListItem(entry);
+            fragment.appendChild(li);
+        });
+
+        requestList.appendChild(fragment);
+        this.currentIndex += batch.length;
+    }
+
+    finalizeLoading() {
+        this.hideLoadingOverlay();
+        document.querySelector('.progress-container').classList.add('hidden');
+        window.requestCache = this.dataCache;
+        
+        if (window.HARRY.handlers.filterRequests) {
+            window.HARRY.handlers.filterRequests();
         }
     }
 
     requestHARData(filename) {
         this.socket.emit('request_har_data', { filename });
         
-        // Show progress container
         const progressContainer = document.querySelector('.progress-container');
         if (progressContainer) {
             progressContainer.classList.remove('hidden');
