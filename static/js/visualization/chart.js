@@ -1,12 +1,11 @@
 const PHASE_COLORS = {
-    "DNS Lookup": "#4dc9f6",
-    "TCP Connection": "#f67019",
-    "TLS Handshake": "#f53794",
-    "Request Sent": "#537bc4",
-    "Waiting (TTFB)": "#acc236",
-    "Content Download": "#166a8f"
+    "DNS Lookup": "#77DD77",     
+    "TCP Connection": "#9370DB",  
+    "TLS Handshake": "#CCCCCC",  
+    "Request Sent": "#FFB347",   
+    "Waiting (TTFB)": "#FDFD96", 
+    "Content Download": "#4A4A4A"
 };
-
 export const createTimelineChart = (canvas, timings) => {
     const phases = {
         dns: "DNS Lookup",
