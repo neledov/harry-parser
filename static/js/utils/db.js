@@ -1,5 +1,5 @@
 const DB_NAME = 'HarryDB';
-const DB_VERSION = 2; // Increased version to trigger upgrade
+const DB_VERSION = 3; // Increased for schema update
 const STORE_NAME = 'harFiles';
 
 export class HarDatabase {
@@ -16,16 +16,17 @@ export class HarDatabase {
                 
                 if (!db.objectStoreNames.contains(STORE_NAME)) {
                     store = db.createObjectStore(STORE_NAME, { 
-                        keyPath: 'id', 
-                        autoIncrement: true 
+                        keyPath: ['filename', 'requestUrl'] 
                     });
                 } else {
                     store = event.target.transaction.objectStore(STORE_NAME);
                 }
                 
-                // Ensure index exists
                 if (!store.indexNames.contains('filename')) {
                     store.createIndex('filename', 'filename', { unique: false });
+                }
+                if (!store.indexNames.contains('requestUrl')) {
+                    store.createIndex('requestUrl', 'requestUrl', { unique: false });
                 }
             };
         });
@@ -33,19 +34,32 @@ export class HarDatabase {
 
     static async storeHarData(filename, data) {
         const db = await this.init();
-        return new Promise((resolve, reject) => {
-            const transaction = db.transaction([STORE_NAME], 'readwrite');
-            const store = transaction.objectStore(STORE_NAME);
+        const transaction = db.transaction([STORE_NAME], 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+
+        return Promise.all(data.map(async entry => {
+            const requestUrl = entry.request.url;
             
-            const request = store.put({
-                filename,
-                data,
-                timestamp: Date.now()
+            // Check if this exact request already exists
+            const existingKey = await new Promise(resolve => {
+                const getRequest = store.get([filename, requestUrl]);
+                getRequest.onsuccess = () => resolve(getRequest.result);
             });
-            
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+
+            if (!existingKey) {
+                return new Promise((resolve, reject) => {
+                    const request = store.put({
+                        filename,
+                        requestUrl,
+                        data: entry,
+                        timestamp: Date.now()
+                    });
+                    
+                    request.onsuccess = () => resolve(request.result);
+                    request.onerror = () => reject(request.error);
+                });
+            }
+        }));
     }
 
     static async getAllByFilename(filename) {
@@ -58,7 +72,11 @@ export class HarDatabase {
             
             request.onsuccess = () => {
                 const items = request.result;
-                resolve(items.sort((a, b) => a.timestamp - b.timestamp));
+                // Sort by timestamp and extract the data
+                const sortedData = items
+                    .sort((a, b) => a.timestamp - b.timestamp)
+                    .map(item => item.data);
+                resolve(sortedData);
             };
             request.onerror = () => reject(request.error);
         });
@@ -66,7 +84,7 @@ export class HarDatabase {
 
     static async getHarData(filename) {
         const items = await this.getAllByFilename(filename);
-        return items.length > 0 ? items.map(item => item.data).flat() : null;
+        return items.length > 0 ? items : null;
     }
 
     static async clearOldData(maxAge = 24 * 60 * 60 * 1000) {
@@ -80,7 +98,7 @@ export class HarDatabase {
             const now = Date.now();
             request.result.forEach(item => {
                 if (now - item.timestamp > maxAge) {
-                    store.delete(item.id);
+                    store.delete([item.filename, item.requestUrl]);
                 }
             });
         };

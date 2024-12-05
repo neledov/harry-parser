@@ -37,7 +37,10 @@ export class HARSocketClient {
         return new Promise((resolve) => {
             this.socket.on('connect', () => {
                 console.log('Connected to WebSocket');
-                document.querySelector('.progress-text').textContent = 'Connected';
+                const progressText = document.querySelector('.progress-text');
+                if (progressText) {
+                    progressText.textContent = 'Connected';
+                }
                 resolve();
             });
         });
@@ -56,7 +59,10 @@ export class HARSocketClient {
     setupListeners() {
         this.socket.on('disconnect', () => {
             console.log('Disconnected from WebSocket');
-            document.querySelector('.progress-text').textContent = 'Reconnecting...';
+            const progressText = document.querySelector('.progress-text');
+            if (progressText) {
+                progressText.textContent = 'Reconnecting...';
+            }
         });
 
         this.socket.on('har_data_chunk', async (data) => {
@@ -72,16 +78,17 @@ export class HARSocketClient {
         const { chunk, progress, isLast } = data;
         this.updateProgressBar(progress);
         
-        if (Array.isArray(chunk)) {
+        if (Array.isArray(chunk) && chunk.length > 0) {
+            // Store all chunks in IndexedDB
             await HarDatabase.storeHarData(window.filename, chunk);
             
             for (let i = 0; i < chunk.length; i += this.batchSize) {
                 const batch = chunk.slice(i, i + this.batchSize);
                 this.renderQueue.push(batch);
-            }
-
-            if (!this.isRendering) {
-                await this.processRenderQueue();
+                
+                if (!this.isRendering) {
+                    await this.processRenderQueue();
+                }
             }
         }
 
@@ -153,7 +160,14 @@ export class HARSocketClient {
 
     async finalizeLoading() {
         this.hideLoadingOverlay();
-        document.querySelector('.progress-container').classList.add('hidden');
+        const progressContainer = document.querySelector('.progress-container');
+        if (progressContainer) {
+            progressContainer.classList.add('hidden');
+            const progressText = document.querySelector('.progress-text');
+            const progressBar = document.querySelector('.progress-bar');
+            if (progressText) progressText.textContent = '';
+            if (progressBar) progressBar.style.width = '0%';
+        }
         window.requestCache = this.dataCache;
         
         if (window.HARRY.handlers.filterRequests) {
@@ -163,22 +177,27 @@ export class HARSocketClient {
 
     async requestHARData(filename) {
         try {
-            const cachedData = await HarDatabase.getAllByFilename(filename);
+            // Always try to load from IndexedDB first
+            const cachedData = await HarDatabase.getHarData(filename);
             if (cachedData && cachedData.length > 0) {
-                let totalEntries = cachedData.reduce((sum, item) => sum + item.data.length, 0);
+                // Process cached data
+                const totalEntries = cachedData.length;
                 let processedEntries = 0;
 
-                for (const item of cachedData) {
-                    processedEntries += item.data.length;
+                // Process in chunks
+                for (let i = 0; i < cachedData.length; i += this.batchSize) {
+                    const chunk = cachedData.slice(i, i + this.batchSize);
+                    processedEntries += chunk.length;
+                    
                     await this.handleDataChunk({
-                        chunk: item.data,
+                        chunk,
                         progress: (processedEntries / totalEntries) * 100,
                         isLast: processedEntries === totalEntries
                     });
                 }
-                return;
             }
 
+            // Always request from server to get any new data
             this.socket.emit('request_har_data', { filename });
             const progressContainer = document.querySelector('.progress-container');
             if (progressContainer) {
