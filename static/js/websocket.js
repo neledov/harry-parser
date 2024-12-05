@@ -1,5 +1,6 @@
 import { showToast } from './utils/helpers.js';
 import { generateRequestListItem } from './utils/html.js';
+import { HarDatabase } from './utils/db.js';
 
 export class HARSocketClient {
     constructor() {
@@ -53,8 +54,8 @@ export class HARSocketClient {
             document.querySelector('.progress-text').textContent = 'Reconnecting...';
         });
 
-        this.socket.on('har_data_chunk', (data) => {
-            this.handleDataChunk(data);
+        this.socket.on('har_data_chunk', async (data) => {
+            await this.handleDataChunk(data);
         });
 
         this.socket.on('error', (error) => {
@@ -62,9 +63,12 @@ export class HARSocketClient {
         });
     }
 
-    handleDataChunk(data) {
+    async handleDataChunk(data) {
         const { chunk, progress, isLast } = data;
         this.updateProgressBar(progress);
+        
+        // Store chunk in IndexedDB
+        await HarDatabase.storeHarData(window.filename, chunk);
         
         for (let i = 0; i < chunk.length; i += this.batchSize) {
             const batch = chunk.slice(i, i + this.batchSize);
@@ -104,7 +108,7 @@ export class HARSocketClient {
         });
     }
 
-    processBatch(batch) {
+    async processBatch(batch) {
         const requestList = document.getElementById('request-list');
         if (!requestList) return;
 
@@ -140,7 +144,7 @@ export class HARSocketClient {
         this.currentIndex += batch.length;
     }
 
-    finalizeLoading() {
+    async finalizeLoading() {
         this.hideLoadingOverlay();
         document.querySelector('.progress-container').classList.add('hidden');
         window.requestCache = this.dataCache;
@@ -150,7 +154,15 @@ export class HARSocketClient {
         }
     }
 
-    requestHARData(filename) {
+    async requestHARData(filename) {
+        // Try to load from IndexedDB first
+        const cachedData = await HarDatabase.getHarData(filename);
+        if (cachedData) {
+            this.handleDataChunk({ chunk: cachedData, progress: 100, isLast: true });
+            return;
+        }
+
+        // If not in cache, request from server
         this.socket.emit('request_har_data', { filename });
         
         const progressContainer = document.querySelector('.progress-container');

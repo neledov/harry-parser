@@ -10,6 +10,7 @@ import { isSamlRequest, isSamlResponse } from './utils/saml-detector.js';
 import { decodeSamlMessage, parseSamlXml } from './utils/saml.js';
 import { validateXmlSignature } from './utils/signature-validator.js';
 import { loadRequestDetail, filterRequests, deleteFile, renderRequestDetail, updateSelectedRequest } from './handlers/requests.js';
+import { HarDatabase } from './utils/db.js';
 
 // Cache container
 window.requestCache = null;
@@ -56,12 +57,16 @@ const setupEventListeners = () => {
     });
 };
 
-// Initialize application with performance optimization
-document.addEventListener('DOMContentLoaded', () => {
+// Initialize application with performance optimization and IndexedDB
+document.addEventListener('DOMContentLoaded', async () => {
     const requestDetail = document.getElementById("request-detail");
     if (requestDetail) {
         window.filename = requestDetail.dataset.filename;
     }
+
+    // Initialize IndexedDB
+    await HarDatabase.init();
+    await HarDatabase.clearOldData();
 
     if (window.location.pathname.startsWith("/processing/")) {
         const filename = window.location.pathname.split("/").pop();
@@ -132,5 +137,6 @@ window.HARRY = {
     },
     performance: {
         readyStateHandler
-    }
+    },
+    db: HarDatabase
 };
