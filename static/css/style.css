@@ -360,8 +360,8 @@ body {
   
   @keyframes spin {
     0% { transform: rotate(0deg); }
-  }
-  
+    100% { transform: rotate(360deg); }
+}  
   /* Scrollbar Styling */
   ::-webkit-scrollbar {
     width: 8px;
@@ -541,17 +541,20 @@ body {
   }
   
   .files-list li {
-    padding: 10px;
-    border-bottom: 1px solid #3A3A3A;
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
-  
+}
   .files-list li:last-child {
     border-bottom: none;
   }
   
+  .files-list li > a {
+    flex: 1;
+    text-align: left;
+    margin-right: 20px;
+}
+
   .files-list a {
     color: #CCCCCC;
     text-decoration: none;
@@ -983,4 +986,24 @@ body {
   .search-result-item .status-300 { color: #FDFD96; }
   .search-result-item .status-400 { color: #FFB347; }
   .search-result-item .status-500 { color: #FF6961; }
+  
+  .file-info {
+      display: flex;
+      gap: 15px;
+      color: #888888;
+      font-size: 0.9em;
+  }
+  
+  .file-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+
+  .file-size {
+      color: #AAAAAA;
+      font-family: 'Consolas', monospace;
+  }
   

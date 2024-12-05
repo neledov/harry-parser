@@ -25,5 +25,6 @@ class User(UserMixin, db.Model):
 class HARFile(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     filename = db.Column(db.String(255), nullable=False)
+    filesize = db.Column(db.Integer, nullable=False, default=0)
     upload_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)

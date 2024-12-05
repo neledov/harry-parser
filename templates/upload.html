@@ -1,4 +1,3 @@
-<!-- templates/upload.html -->
 {% extends "base.html" %}
 {% block content %}
 <div class="upload-container">
@@ -17,14 +16,18 @@
                     {{ file.filename }}
                 </a>
                 <div class="file-actions">
-                    <span class="upload-date">{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                    <span class="file-info">
+                        <span class="upload-date">{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                        <span class="file-size">{{ file.filesize|filesizeformat }}</span>
+                    </span>
                     <i class="fas fa-trash delete-btn" 
-                   data-filename="{{ file.filename }}"
-                   title="Delete file"></i>
+                       data-filename="{{ file.filename }}"
+                       title="Delete file"></i>
                 </div>
             </li>
             {% endfor %}
         </ul>
     </div>
-    {% endif %}</div>
+    {% endif %}
+</div>
 {% endblock %}

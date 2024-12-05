@@ -149,8 +149,11 @@ def upload_file():
             filepath = os.path.join(user_upload_dir, filename)
             file.save(filepath)
             
+            filesize = os.path.getsize(filepath)
+            
             har_file = HARFile(
                 filename=filename,
+                filesize=filesize,
                 user_id=current_user.id
             )
             db.session.add(har_file)
