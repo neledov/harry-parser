@@ -2,10 +2,11 @@ const PHASE_COLORS = {
     "DNS Lookup": "#77DD77",     
     "TCP Connection": "#9370DB",  
     "TLS Handshake": "#CCCCCC",  
-    "Request Sent": "#FFB347",   
+    "Request Sent": "#FFB347",    
     "Waiting (TTFB)": "#FDFD96", 
-    "Content Download": "#4A4A4A"
+    "Content Download": "#4A4A4A" 
 };
+
 export const createTimelineChart = (canvas, timings) => {
     const phases = {
         dns: "DNS Lookup",
@@ -48,13 +49,19 @@ export const createTimelineChart = (canvas, timings) => {
                         usePointStyle: true,
                         pointStyle: "rectRounded",
                         padding: 15,
-                        color: "#CCCCCC" 
+                        color: "#CCCCCC",
+                        font: {
+                            family: "'Consolas', monospace"
+                        }
                     }
                 },
                 title: {
                     display: true,
                     text: "Request-Response Timeline",
-                    font: { size: 18 },
+                    font: { 
+                        size: 14,
+                        family: "'Consolas', monospace"
+                    },
                     padding: { top: 10, bottom: 30 },
                     color: "#CCCCCC"
                 }
@@ -63,11 +70,19 @@ export const createTimelineChart = (canvas, timings) => {
                 x: {
                     stacked: true,
                     grid: { color: "#333333" },
-                    ticks: { color: "#CCCCCC" },
+                    ticks: { 
+                        color: "#CCCCCC",
+                        font: {
+                            family: "'Consolas', monospace"
+                        }
+                    },
                     title: {
                         display: true,
                         text: "Time (ms)",
-                        font: { size: 14 },
+                        font: { 
+                            size: 10,
+                            family: "'Consolas', monospace"
+                        },
                         color: "#CCCCCC"
                     }
                 },
