@@ -88,6 +88,8 @@ export const filterRequests = () => {
 const searchInResponses = (searchText) => {
     if (!window.requestCache || !searchText) {
         hideSearchResults();
+        // Clear the count when search is empty
+        document.getElementById('search-results-count').textContent = '';
         return;
     }
     
