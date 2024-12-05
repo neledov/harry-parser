@@ -1,4 +1,10 @@
 # HARRY - HAR Analyzer
+```
+ ____   ____
+/  0 \_/  0 \_______
+\___/  \___/       \\ 
+                HARRY
+  ```
 
 HARRY is an offline web-based HTTP Archive (HAR) file analyzer with a special focus on SAML traffic analysis and security assessment.
 
