@@ -177,14 +177,18 @@ export class HARSocketClient {
 
     async requestHARData(filename) {
         try {
-            // Always try to load from IndexedDB first
             const cachedData = await HarDatabase.getHarData(filename);
             if (cachedData && cachedData.length > 0) {
-                // Process cached data
+                const progressContainer = document.querySelector('.progress-container');
+                if (progressContainer) {
+                    progressContainer.classList.remove('hidden');
+                    document.querySelector('.progress-text').textContent = 'Loading from cache...';
+                    console.log('Loading from the cache...')
+                }
+    
                 const totalEntries = cachedData.length;
                 let processedEntries = 0;
-
-                // Process in chunks
+    
                 for (let i = 0; i < cachedData.length; i += this.batchSize) {
                     const chunk = cachedData.slice(i, i + this.batchSize);
                     processedEntries += chunk.length;
@@ -195,20 +199,22 @@ export class HARSocketClient {
                         isLast: processedEntries === totalEntries
                     });
                 }
+                return;
             }
-
-            // Always request from server to get any new data
+    
             this.socket.emit('request_har_data', { filename });
             const progressContainer = document.querySelector('.progress-container');
             if (progressContainer) {
                 progressContainer.classList.remove('hidden');
-                document.querySelector('.progress-text').textContent = 'Loading...';
+                document.querySelector('.progress-text').textContent = 'Loading from server...';
+                console.log('Loading from the server...')
             }
         } catch (error) {
             console.error('Cache retrieval failed:', error);
             this.socket.emit('request_har_data', { filename });
         }
     }
+    
 
     disconnect() {
         this.socket.disconnect();
