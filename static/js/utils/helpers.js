@@ -40,3 +40,11 @@ export const formatFileSize = (bytes) => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+export const clearIndexedDBCache = async () => {
+    const databases = await window.indexedDB.databases();
+    for (const db of databases) {
+        window.indexedDB.deleteDatabase(db.name);
+    }
+    showToast('Cache cleared successfully');
+};

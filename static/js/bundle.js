@@ -3,7 +3,7 @@ import { createTimelineChart } from './visualization/chart.js';
 import { decodeCertificate } from './utils/certificate-analyzer.js';
 import { generateCurlCommand } from './utils/curl.js';
 import { handleEncryptedAssertion } from './utils/encryption-handler.js';
-import { debounce, escapeHTML, copyToClipboard, showToast, formatJSON } from './utils/helpers.js';
+import { debounce, escapeHTML, copyToClipboard, showToast, formatJSON, clearIndexedDBCache } from './utils/helpers.js';
 import { generateDetailHTML, generateSamlSection } from './utils/html.js';
 import { analyzeSamlSecurity } from './utils/saml-analyzer.js';
 import { isSamlRequest, isSamlResponse } from './utils/saml-detector.js';
@@ -117,7 +117,7 @@ window.HARRY = {
         certificate: { decodeCertificate },
         curl: { generateCurlCommand },
         encryption: { handleEncryptedAssertion },
-        helpers: { debounce, escapeHTML, copyToClipboard, showToast, formatJSON },
+        helpers: { debounce, escapeHTML, copyToClipboard, showToast, formatJSON, clearIndexedDBCache },
         html: { generateDetailHTML, generateSamlSection },
         saml: {
             analyzeSecurity: analyzeSamlSecurity,

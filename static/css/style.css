@@ -1037,3 +1037,19 @@ body {
       font-size: 1.2em;
   }
   
+  .clear-cache-btn {
+      background: #333333;
+      color: #CCCCCC;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+  }
+  
+  .clear-cache-btn:hover {
+      background: #404040;
+  }
+  
