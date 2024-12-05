@@ -33,6 +33,16 @@ export class HARSocketClient {
         this.showLoadingOverlay();
     }
 
+    async init() {
+        return new Promise((resolve) => {
+            this.socket.on('connect', () => {
+                console.log('Connected to WebSocket');
+                document.querySelector('.progress-text').textContent = 'Connected';
+                resolve();
+            });
+        });
+    }
+
     showLoadingOverlay() {
         const overlay = document.getElementById('loading-overlay');
         if (overlay) overlay.style.display = 'flex';
@@ -44,11 +54,6 @@ export class HARSocketClient {
     }
 
     setupListeners() {
-        this.socket.on('connect', () => {
-            console.log('Connected to WebSocket');
-            document.querySelector('.progress-text').textContent = 'Connected';
-        });
-
         this.socket.on('disconnect', () => {
             console.log('Disconnected from WebSocket');
             document.querySelector('.progress-text').textContent = 'Reconnecting...';
@@ -67,20 +72,21 @@ export class HARSocketClient {
         const { chunk, progress, isLast } = data;
         this.updateProgressBar(progress);
         
-        // Store chunk in IndexedDB
-        await HarDatabase.storeHarData(window.filename, chunk);
-        
-        for (let i = 0; i < chunk.length; i += this.batchSize) {
-            const batch = chunk.slice(i, i + this.batchSize);
-            this.renderQueue.push(batch);
-        }
+        if (Array.isArray(chunk)) {
+            await HarDatabase.storeHarData(window.filename, chunk);
+            
+            for (let i = 0; i < chunk.length; i += this.batchSize) {
+                const batch = chunk.slice(i, i + this.batchSize);
+                this.renderQueue.push(batch);
+            }
 
-        if (!this.isRendering) {
-            this.processRenderQueue();
+            if (!this.isRendering) {
+                await this.processRenderQueue();
+            }
         }
 
         if (isLast) {
-            this.finalizeLoading();
+            await this.finalizeLoading();
         }
     }
 
@@ -93,19 +99,20 @@ export class HARSocketClient {
         }
     }
 
-    processRenderQueue() {
+    async processRenderQueue() {
         this.isRendering = true;
         
-        if (this.renderQueue.length === 0) {
-            this.isRendering = false;
-            return;
+        while (this.renderQueue.length > 0) {
+            const batch = this.renderQueue.shift();
+            await new Promise(resolve => {
+                requestAnimationFrame(async () => {
+                    await this.processBatch(batch);
+                    resolve();
+                });
+            });
         }
 
-        const batch = this.renderQueue.shift();
-        requestAnimationFrame(() => {
-            this.processBatch(batch);
-            setTimeout(() => this.processRenderQueue(), 0);
-        });
+        this.isRendering = false;
     }
 
     async processBatch(batch) {
@@ -155,20 +162,32 @@ export class HARSocketClient {
     }
 
     async requestHARData(filename) {
-        // Try to load from IndexedDB first
-        const cachedData = await HarDatabase.getHarData(filename);
-        if (cachedData) {
-            this.handleDataChunk({ chunk: cachedData, progress: 100, isLast: true });
-            return;
-        }
+        try {
+            const cachedData = await HarDatabase.getAllByFilename(filename);
+            if (cachedData && cachedData.length > 0) {
+                let totalEntries = cachedData.reduce((sum, item) => sum + item.data.length, 0);
+                let processedEntries = 0;
 
-        // If not in cache, request from server
-        this.socket.emit('request_har_data', { filename });
-        
-        const progressContainer = document.querySelector('.progress-container');
-        if (progressContainer) {
-            progressContainer.classList.remove('hidden');
-            document.querySelector('.progress-text').textContent = 'Loading...';
+                for (const item of cachedData) {
+                    processedEntries += item.data.length;
+                    await this.handleDataChunk({
+                        chunk: item.data,
+                        progress: (processedEntries / totalEntries) * 100,
+                        isLast: processedEntries === totalEntries
+                    });
+                }
+                return;
+            }
+
+            this.socket.emit('request_har_data', { filename });
+            const progressContainer = document.querySelector('.progress-container');
+            if (progressContainer) {
+                progressContainer.classList.remove('hidden');
+                document.querySelector('.progress-text').textContent = 'Loading...';
+            }
+        } catch (error) {
+            console.error('Cache retrieval failed:', error);
+            this.socket.emit('request_har_data', { filename });
         }
     }
 
