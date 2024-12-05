@@ -13,12 +13,19 @@ export class HARSocketClient {
                 'Accept-Encoding': 'gzip, deflate'
             },
             perMessageDeflate: {
-                threshold: 1024
+                threshold: 512,
+                zlibInflateOptions: {
+                    chunkSize: 16 * 1024
+                },
+                zlibInflateOptions: {
+                    level: 9,
+                    memLevel: 9
+                }
             }
         });
         this.dataCache = {};
         this.currentIndex = 0;
-        this.batchSize = 5;
+        this.batchSize = 3;
         this.renderQueue = [];
         this.isRendering = false;
         this.setupListeners();

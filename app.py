@@ -35,7 +35,7 @@ app.config['COMPRESS_MIMETYPES'] = [
     'application/xml',
     'application/samlrequest'
 ]
-app.config['COMPRESS_LEVEL'] = 6
+app.config['COMPRESS_LEVEL'] = 9
 app.config['COMPRESS_MIN_SIZE'] = 500
 
 ALLOWED_EXTENSIONS = {'har'}
