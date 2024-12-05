@@ -7,6 +7,9 @@
     </form>
     
     {% if files %}
+    <div class="filter-container">
+        <input type="text" id="file-search" placeholder="Search files..." aria-label="Search files">
+    </div>
     <div class="files-list">
         <h3>Your Files</h3>
         <ul id="files-list">
@@ -30,4 +33,21 @@
     </div>
     {% endif %}
 </div>
+
+<script type="module">
+    import { debounce } from '/static/js/utils/helpers.js';
+    
+    const fileSearch = document.getElementById("file-search");
+    if (fileSearch) {
+        fileSearch.addEventListener("input", debounce(() => {
+            const searchTerm = fileSearch.value.toLowerCase();
+            const filesList = document.querySelectorAll('#files-list li');
+            
+            filesList.forEach(item => {
+                const fileName = item.querySelector('a').textContent.toLowerCase();
+                item.style.display = fileName.includes(searchTerm) ? '' : 'none';
+            });
+        }, 300));
+    }
+</script>
 {% endblock %}
