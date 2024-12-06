@@ -100,10 +100,10 @@ def handle_har_request(data):
         with open(filepath, 'r', encoding='utf-8') as f:
             har_data = json.load(f)
             entries = har_data.get('log', {}).get('entries', [])
-            
-            chunk_size = 25  # Optimized chunk size
             total_entries = len(entries)
             
+            # Stream in chunks for UI updates
+            chunk_size = 25
             for i in range(0, total_entries, chunk_size):
                 chunk = entries[i:i + chunk_size]
                 emit('har_data_chunk', {
@@ -112,8 +112,12 @@ def handle_har_request(data):
                     'isLast': (i + chunk_size) >= total_entries,
                     'totalEntries': total_entries
                 })
+                eventlet.sleep(0)  # Allow other events to be processed
                 
-            logging.info(f"User {current_user.username} streamed HAR file: {filename}")
+            logging.info(f"User {current_user.username} streamed HAR file: {filename} with {total_entries} entries")
+    except json.JSONDecodeError as e:
+        logging.error(f"JSON decode error in HAR file {filename}: {str(e)}")
+        emit('error', {'message': 'Invalid HAR file format'})
     except Exception as e:
         logging.error(f"Error streaming HAR file {filename}: {str(e)}")
         emit('error', {'message': 'Error processing HAR file'})
@@ -174,12 +178,26 @@ def upload_file():
         if file and allowed_file(file.filename):
             try:
                 filename = secure_filename(file.filename)
+                
+                # Check and remove existing file
+                existing_file = HARFile.query.filter_by(
+                    filename=filename,
+                    user_id=current_user.id
+                ).first()
+                
+                if existing_file:
+                    filepath = os.path.join(current_user.get_user_upload_folder(), filename)
+                    if os.path.exists(filepath):
+                        os.remove(filepath)
+                    db.session.delete(existing_file)
+                    db.session.commit()
+                
+                # Save new file
                 user_upload_dir = current_user.get_user_upload_folder()
                 Path(user_upload_dir).mkdir(parents=True, exist_ok=True)
-                
                 filepath = os.path.join(user_upload_dir, filename)
                 
-                # Stream the file to disk in chunks
+                # Stream the file to disk
                 chunk_size = 8192
                 file_size = 0
                 with open(filepath, 'wb') as f:
@@ -190,6 +208,7 @@ def upload_file():
                         file_size += len(chunk)
                         f.write(chunk)
                 
+                # Create new database entry
                 har_file = HARFile(
                     filename=filename,
                     filesize=file_size,
