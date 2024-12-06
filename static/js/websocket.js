@@ -86,14 +86,6 @@ export class HARSocketClient {
             
             // Process visual rendering
             this.renderQueue.push(chunk);
-            chunk.forEach((entry, index) => {
-                const globalIndex = this.currentIndex + index;
-                this.dataCache[globalIndex] = {
-                    request: entry.request,
-                    response: entry.response,
-                    timings: entry.timings
-                };
-            });
             
             if (!this.isRendering) {
                 await this.processRenderQueue();
@@ -101,12 +93,11 @@ export class HARSocketClient {
             
             this.currentIndex += chunk.length;
         }
-    
+
         if (isLast) {
             await this.finalizeLoading();
         }
     }
-    
 
     updateProgressBar(progress) {
         const progressBar = document.querySelector('.progress-bar');
@@ -136,11 +127,16 @@ export class HARSocketClient {
     async processBatch(batch) {
         const requestList = document.getElementById('request-list');
         if (!requestList) return;
-    
+
         const fragment = document.createDocumentFragment();
-    
+
         batch.forEach((entry, index) => {
             const globalIndex = this.currentIndex - batch.length + index;
+            this.dataCache[globalIndex] = {
+                request: entry.request,
+                response: entry.response,
+                timings: entry.timings
+            };
             
             const li = document.createElement('li');
             li.dataset.index = globalIndex;
@@ -159,10 +155,9 @@ export class HARSocketClient {
             li.innerHTML = generateRequestListItem(entry);
             fragment.appendChild(li);
         });
-    
+
         requestList.appendChild(fragment);
     }
-    
 
     async finalizeLoading() {
         this.hideLoadingOverlay();
