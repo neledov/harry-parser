@@ -42,29 +42,10 @@ const handleLoadingStates = () => {
     }
 };
 
-const setupWebSocketHandlers = () => {
-    if (window.harSocket) {
-        window.harSocket.socket.on('disconnect', () => {
-            const progressText = document.querySelector('.progress-text');
-            if (progressText) {
-                progressText.textContent = 'Reconnecting...';
-            }
-        });
-        
-        window.harSocket.socket.on('connect', () => {
-            const progressText = document.querySelector('.progress-text');
-            if (progressText) {
-                progressText.textContent = 'Connected';
-            }
-        });
-    }
-};
-
 // Initialize everything when page loads
 window.addEventListener('load', async () => {
     handleLoadingStates();
     await initializeHarSocket();
-    setupWebSocketHandlers();
 });
 
 // Clean up before unload

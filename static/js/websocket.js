@@ -29,6 +29,7 @@ export class HARSocketClient {
         this.batchSize = 25;
         this.renderQueue = [];
         this.isRendering = false;
+        this.startTime = null;
         this.setupListeners();
         this.showLoadingOverlay();
     }
@@ -37,9 +38,9 @@ export class HARSocketClient {
         return new Promise((resolve) => {
             this.socket.on('connect', () => {
                 console.log('Connected to WebSocket');
-                const progressText = document.querySelector('.progress-text');
-                if (progressText) {
-                    progressText.textContent = 'Connected';
+                const loadingText = document.querySelector('.loading-overlay .loading-text');
+                if (loadingText) {
+                    loadingText.textContent = 'Connected';
                 }
                 resolve();
             });
@@ -58,10 +59,16 @@ export class HARSocketClient {
 
     setupListeners() {
         this.socket.on('disconnect', () => {
-            console.log('Disconnected from WebSocket');
-            const progressText = document.querySelector('.progress-text');
-            if (progressText) {
-                progressText.textContent = 'Reconnecting...';
+            const loadingText = document.querySelector('.loading-overlay .loading-text');
+            if (loadingText) {
+                loadingText.textContent = 'Reconnecting...';
+            }
+        });
+
+        this.socket.on('connect', () => {
+            const loadingText = document.querySelector('.loading-overlay .loading-text');
+            if (loadingText) {
+                loadingText.textContent = 'Connected';
             }
         });
 
@@ -76,10 +83,26 @@ export class HARSocketClient {
 
     async handleDataChunk(data) {
         const { chunk, progress, isLast, fromCache } = data;
+        
+        // Calculate estimated time
+        const currentTime = Date.now();
+        if (!this.startTime) {
+            this.startTime = currentTime;
+        }
+        
+        const elapsed = (currentTime - this.startTime) / 1000;
+        const percentComplete = progress / 100;
+        const estimatedTotal = elapsed / percentComplete;
+        const remaining = Math.ceil(estimatedTotal - elapsed);
+        
+        const timeText = document.querySelector('.loading-overlay .time-remaining');
+        if (timeText) {
+            timeText.textContent = formatTimeRemaining(remaining);
+        }
+        
         this.updateProgressBar(progress);
         
         if (Array.isArray(chunk) && chunk.length > 0) {
-            // Only store in IndexedDB if data is from server
             if (!fromCache) {
                 await HarDatabase.storeHarData(window.filename, chunk);
             }
@@ -97,11 +120,15 @@ export class HARSocketClient {
     }
 
     updateProgressBar(progress) {
-        const progressBar = document.querySelector('.progress-bar');
-        const progressText = document.querySelector('.progress-text');
-        if (progressBar && progressText) {
-            progressBar.style.width = `${progress}%`;
-            progressText.textContent = `Loading: ${Math.round(progress)}%`;
+        const circle = document.querySelector('.loading-overlay .circular-progress .progress');
+        const text = document.querySelector('.loading-overlay .circular-progress .progress-text');
+        
+        if (circle && text) {
+            const circumference = 2 * Math.PI * 45;
+            const offset = circumference - (progress / 100) * circumference;
+            circle.style.strokeDasharray = `${circumference} ${circumference}`;
+            circle.style.strokeDashoffset = offset;
+            text.textContent = `${Math.round(progress)}%`;
         }
     }
 
@@ -158,14 +185,6 @@ export class HARSocketClient {
 
     async finalizeLoading() {
         this.hideLoadingOverlay();
-        const progressContainer = document.querySelector('.progress-container');
-        if (progressContainer) {
-            progressContainer.classList.add('hidden');
-            const progressText = document.querySelector('.progress-text');
-            const progressBar = document.querySelector('.progress-bar');
-            if (progressText) progressText.textContent = '';
-            if (progressBar) progressBar.style.width = '0%';
-        }
         window.requestCache = this.dataCache;
         
         if (window.HARRY.handlers.filterRequests) {
@@ -176,17 +195,11 @@ export class HARSocketClient {
     async requestHARData(filename) {
         try {
             const cachedData = await HarDatabase.getHarData(filename);
+            const loadingText = document.querySelector('.loading-overlay .loading-text');
             
-            const progressContainer = document.querySelector('.progress-container');
-            if (progressContainer) {
-                progressContainer.classList.remove('hidden');
-            }
-
             if (cachedData && cachedData.length > 0) {
-                const progressText = document.querySelector('.progress-text');
-                if (progressText) {
-                    progressText.textContent = 'Loading from cache...';
-                    console.log('Loading from cache...');
+                if (loadingText) {
+                    loadingText.textContent = 'Loading from cache...';
                 }
 
                 const totalEntries = cachedData.length;
@@ -206,10 +219,8 @@ export class HARSocketClient {
                 return;
             }
 
-            const progressText = document.querySelector('.progress-text');
-            if (progressText) {
-                progressText.textContent = 'Loading from server...';
-                console.log('Loading from server...');
+            if (loadingText) {
+                loadingText.textContent = 'Loading from server...';
             }
             this.socket.emit('request_har_data', { filename });
 
@@ -221,5 +232,17 @@ export class HARSocketClient {
 
     disconnect() {
         this.socket.disconnect();
+    }
+}
+
+function formatTimeRemaining(seconds) {
+    if (seconds < 60) {
+        return `${seconds} seconds remaining`;
+    } else if (seconds < 3600) {
+        const minutes = Math.ceil(seconds / 60);
+        return `${minutes} minute${minutes > 1 ? 's' : ''} remaining`;
+    } else {
+        const hours = Math.ceil(seconds / 3600);
+        return `${hours} hour${hours > 1 ? 's' : ''} remaining`;
     }
 }

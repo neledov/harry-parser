@@ -1,16 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
 <div id="loading-overlay" class="loading-overlay">
-    <div class="spinner"></div>
-    <div class="loading-text">Fetching Requests</div>
+    <div class="loading-text">Loading from server...</div>
+    <div class="circular-progress">
+        <svg viewBox="0 0 100 100">
+            <circle class="bg" cx="50" cy="50" r="45"/>
+            <circle class="progress" cx="50" cy="50" r="45"/>
+        </svg>
+        <div class="progress-text">0%</div>
+        <div class="time-remaining">Estimating...</div>
+    </div>
 </div>
-<!-- Rest of the existing content -->
+
 <div class="secondary-panel">
     <div class="search-container">
         <input type="text" id="response-search" placeholder="Search in response content..." aria-label="Search in response content">
         <span class="search-count" id="search-results-count"></span>
     </div>
 </div>
+
 <div id="main-content">
     <div class="left-panel">
         <div class="filter-container">

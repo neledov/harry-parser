@@ -1085,3 +1085,46 @@ body {
     position: absolute;
     opacity: 0.3;
 }
+.circular-progress {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 20px auto;
+}
+
+.circular-progress circle {
+  fill: none;
+  stroke-width: 8;
+}
+
+.circular-progress .bg {
+  stroke: #3A3A3A;
+}
+
+.circular-progress .progress {
+  stroke: #CCCCCC;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s ease;
+}
+
+.progress-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 1.2em;
+  color: #CCCCCC;
+}
+
+.time-remaining {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9em;
+  color: #AAAAAA;
+}
+
+.circular-progress.hidden {
+    display: none;
+}
