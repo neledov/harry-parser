@@ -15,7 +15,6 @@ export const handleFileUpload = () => {
         
         if (!file) return;
 
-        // Lock interface and show progress
         submitButton.disabled = true;
         fileInput.disabled = true;
         document.body.appendChild(overlay);
@@ -23,48 +22,42 @@ export const handleFileUpload = () => {
         progressContainer.classList.remove('hidden');
         
         const startTime = Date.now();
-        let lastLoaded = 0;
-        let lastTime = startTime;
         
         try {
-            const response = await fetch('/', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Accept': 'application/json'
-                }
+            const xhr = new XMLHttpRequest();
+            
+            const uploadPromise = new Promise((resolve, reject) => {
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) {
+                        const progress = (e.loaded / e.total) * 100;
+                        const elapsed = (Date.now() - startTime) / 1000;
+                        const uploadSpeed = e.loaded / elapsed;
+                        const remaining = (e.total - e.loaded) / uploadSpeed;
+                        
+                        updateUploadProgress(progress, formatTimeRemaining(remaining));
+                    }
+                };
+                
+                xhr.onload = () => resolve(xhr.response);
+                xhr.onerror = () => reject(new Error('Upload failed'));
             });
 
-            const xhr = new XMLHttpRequest();
-            xhr.upload.onprogress = (progressEvent) => {
-                const progress = (progressEvent.loaded / progressEvent.total) * 100;
-                
-                // Calculate speed and time remaining
-                const currentTime = Date.now();
-                const timeDiff = (currentTime - lastTime) / 1000;
-                const loadedDiff = progressEvent.loaded - lastLoaded;
-                const uploadSpeed = loadedDiff / timeDiff;
-                const remainingBytes = progressEvent.total - progressEvent.loaded;
-                const timeRemaining = Math.ceil(remainingBytes / uploadSpeed);
-                
-                updateUploadProgress(progress, formatTimeRemaining(timeRemaining));
-                
-                lastLoaded = progressEvent.loaded;
-                lastTime = currentTime;
-            };
+            xhr.open('POST', '/');
+            xhr.setRequestHeader('Accept', 'application/json');
+            xhr.responseType = 'json';
+            xhr.send(formData);
 
-            const data = await response.json();
+            const response = await uploadPromise;
             
-            if (!response.ok) {
-                throw new Error(data.error || 'Upload failed');
+            if (xhr.status !== 200) {
+                throw new Error(response.error || 'Upload failed');
             }
 
-            window.location.href = `/processing/${encodeURIComponent(data.filename)}`;
+            window.location.href = `/processing/${encodeURIComponent(response.filename)}`;
             
         } catch (error) {
             showToast(`Upload failed: ${error.message}`, 3000);
         } finally {
-            // Cleanup and unlock interface
             submitButton.disabled = false;
             fileInput.disabled = false;
             progressContainer.classList.add('hidden');
@@ -73,6 +66,7 @@ export const handleFileUpload = () => {
         }
     });
 };
+
 
 function updateUploadProgress(progress, timeRemaining) {
     const circle = document.querySelector('.circular-progress .progress');
