@@ -44,6 +44,9 @@ export const handleFileUpload = () => {
         let lastLoaded = 0;
         let lastTime = startTime;
         let speedArray = [];
+        const MAX_SAMPLES = 10;
+        const UPDATE_INTERVAL = 200;
+        let lastUpdate = 0;
         
         progressContainer.style.display = 'block';
         submitButton.disabled = true;
@@ -55,14 +58,19 @@ export const handleFileUpload = () => {
         xhr.upload.onprogress = (e) => {
             if (e.lengthComputable) {
                 const currentTime = Date.now();
+                if (currentTime - lastUpdate < UPDATE_INTERVAL) return;
+
                 const timeDiff = (currentTime - lastTime) / 1000;
                 const loadedDiff = e.loaded - lastLoaded;
                 
                 const instantSpeed = loadedDiff / timeDiff;
                 speedArray.push(instantSpeed);
-                if (speedArray.length > 5) speedArray.shift();
+                if (speedArray.length > MAX_SAMPLES) speedArray.shift();
                 
-                const avgSpeed = speedArray.reduce((a, b) => a + b) / speedArray.length;
+                const avgSpeed = speedArray.reduce((acc, speed, idx) => {
+                    const weight = (idx + 1) / speedArray.length;
+                    return acc + speed * weight;
+                }, 0) / speedArray.reduce((acc, _, idx) => acc + (idx + 1), 0);
                 
                 const percentage = (e.loaded / e.total) * 100;
                 const remaining = (e.total - e.loaded) / avgSpeed;
@@ -74,6 +82,7 @@ export const handleFileUpload = () => {
 
                 lastLoaded = e.loaded;
                 lastTime = currentTime;
+                lastUpdate = currentTime;
             }
         };
 
@@ -85,7 +94,7 @@ export const handleFileUpload = () => {
         xhr.upload.onloadend = () => {
             progressBar.style.width = '100%';
             percentageDisplay.textContent = '100%';
-            timeDisplay.textContent = 'Redirecting to processing and results';
+            timeDisplay.textContent = 'Processing...';
         };
 
         xhr.onload = function() {
