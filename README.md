@@ -39,8 +39,8 @@ HARRY is an offline web-based HTTP Archive (HAR) file analyzer with a special fo
 
 2. Create and activate a virtual environment:
    ```bash
-    
-      # On Windows: env\\Scripts\\activate
+   python -m venv env
+   source env/bin/activate  # On Windows: env\\Scripts\\activate
    ```
 
 3. Install dependencies:
