@@ -26,7 +26,7 @@ export class HARSocketClient {
         });
         this.dataCache = {};
         this.currentIndex = 0;
-        this.batchSize = 3;
+        this.batchSize = 25;
         this.renderQueue = [];
         this.isRendering = false;
         this.setupListeners();
@@ -79,23 +79,34 @@ export class HARSocketClient {
         this.updateProgressBar(progress);
         
         if (Array.isArray(chunk) && chunk.length > 0) {
-            // Store all chunks in IndexedDB
-            await HarDatabase.storeHarData(window.filename, chunk);
-            
-            for (let i = 0; i < chunk.length; i += this.batchSize) {
-                const batch = chunk.slice(i, i + this.batchSize);
-                this.renderQueue.push(batch);
-                
-                if (!this.isRendering) {
-                    await this.processRenderQueue();
-                }
+            // Only store in IndexedDB if loading from server
+            if (document.querySelector('.progress-text')?.textContent === 'Loading from server...') {
+                await HarDatabase.storeHarData(window.filename, chunk);
             }
+            
+            // Process visual rendering
+            this.renderQueue.push(chunk);
+            chunk.forEach((entry, index) => {
+                const globalIndex = this.currentIndex + index;
+                this.dataCache[globalIndex] = {
+                    request: entry.request,
+                    response: entry.response,
+                    timings: entry.timings
+                };
+            });
+            
+            if (!this.isRendering) {
+                await this.processRenderQueue();
+            }
+            
+            this.currentIndex += chunk.length;
         }
-
+    
         if (isLast) {
             await this.finalizeLoading();
         }
     }
+    
 
     updateProgressBar(progress) {
         const progressBar = document.querySelector('.progress-bar');
@@ -125,16 +136,11 @@ export class HARSocketClient {
     async processBatch(batch) {
         const requestList = document.getElementById('request-list');
         if (!requestList) return;
-
+    
         const fragment = document.createDocumentFragment();
-
+    
         batch.forEach((entry, index) => {
-            const globalIndex = this.currentIndex + index;
-            this.dataCache[globalIndex] = {
-                request: entry.request,
-                response: entry.response,
-                timings: entry.timings
-            };
+            const globalIndex = this.currentIndex - batch.length + index;
             
             const li = document.createElement('li');
             li.dataset.index = globalIndex;
@@ -153,10 +159,10 @@ export class HARSocketClient {
             li.innerHTML = generateRequestListItem(entry);
             fragment.appendChild(li);
         });
-
+    
         requestList.appendChild(fragment);
-        this.currentIndex += batch.length;
     }
+    
 
     async finalizeLoading() {
         this.hideLoadingOverlay();
@@ -214,7 +220,6 @@ export class HARSocketClient {
             this.socket.emit('request_har_data', { filename });
         }
     }
-    
 
     disconnect() {
         this.socket.disconnect();

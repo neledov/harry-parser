@@ -1,5 +1,5 @@
 const DB_NAME = 'HarryDB';
-const DB_VERSION = 3; // Increased for schema update
+const DB_VERSION = 3;
 const STORE_NAME = 'harFiles';
 
 export class HarDatabase {
@@ -36,43 +36,39 @@ export class HarDatabase {
         const db = await this.init();
         const transaction = db.transaction([STORE_NAME], 'readwrite');
         const store = transaction.objectStore(STORE_NAME);
-
-        return Promise.all(data.map(async entry => {
-            const requestUrl = entry.request.url;
+    
+        // Create a unique key for each entry using timestamp + index
+        const baseTimestamp = Date.now();
+        const promises = data.map((entry, index) => new Promise((resolve, reject) => {
+            const uniqueKey = {
+                filename,
+                requestUrl: `${baseTimestamp}-${index}-${entry.request.url}`
+            };
             
-            // Check if this exact request already exists
-            const existingKey = await new Promise(resolve => {
-                const getRequest = store.get([filename, requestUrl]);
-                getRequest.onsuccess = () => resolve(getRequest.result);
+            const request = store.put({
+                ...uniqueKey,
+                data: entry,
+                timestamp: baseTimestamp + index
             });
-
-            if (!existingKey) {
-                return new Promise((resolve, reject) => {
-                    const request = store.put({
-                        filename,
-                        requestUrl,
-                        data: entry,
-                        timestamp: Date.now()
-                    });
-                    
-                    request.onsuccess = () => resolve(request.result);
-                    request.onerror = () => reject(request.error);
-                });
-            }
+            
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
         }));
+    
+        return Promise.all(promises);
     }
-
+    
+    
     static async getAllByFilename(filename) {
         const db = await this.init();
         return new Promise((resolve, reject) => {
             const transaction = db.transaction([STORE_NAME], 'readonly');
             const store = transaction.objectStore(STORE_NAME);
             const index = store.index('filename');
-            const request = index.getAll(filename);
+            const request = index.getAll(IDBKeyRange.only(filename));
             
             request.onsuccess = () => {
                 const items = request.result;
-                // Sort by timestamp and extract the data
                 const sortedData = items
                     .sort((a, b) => a.timestamp - b.timestamp)
                     .map(item => item.data);
@@ -81,6 +77,7 @@ export class HarDatabase {
             request.onerror = () => reject(request.error);
         });
     }
+    
 
     static async getHarData(filename) {
         const items = await this.getAllByFilename(filename);

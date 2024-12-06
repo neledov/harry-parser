@@ -88,29 +88,38 @@ export const filterRequests = () => {
 const searchInResponses = (searchText) => {
     if (!window.requestCache || !searchText) {
         hideSearchResults();
-        // Clear the count when search is empty
         document.getElementById('search-results-count').textContent = '';
         return;
     }
     
+    // Use only window.requestCache for searching
     const matches = Object.entries(window.requestCache).filter(([_, data]) => {
         const responseContent = data.response?.content?.text || '';
+        // Ensure we only match once per response
         return responseContent.toLowerCase().includes(searchText.toLowerCase());
     });
 
-    document.getElementById('search-results-count').textContent = 
-        `Found: ${matches.length} matches`;
+    // Remove any potential duplicates by unique index
+    const uniqueMatches = Array.from(new Map(matches).entries());
 
-    showSearchResults(matches, searchText);
+    document.getElementById('search-results-count').textContent = 
+        `Found: ${uniqueMatches.length} matches`;
+
+    showSearchResults(uniqueMatches, searchText);
 };
 
+
 const showSearchResults = (matches, searchText) => {
-    let resultsPanel = document.getElementById('response-search-results');
-    if (!resultsPanel) {
-        resultsPanel = document.createElement('div');
-        resultsPanel.id = 'response-search-results';
-        document.querySelector('.search-container').appendChild(resultsPanel);
+    // Remove existing results panel if it exists
+    const existingPanel = document.getElementById('response-search-results');
+    if (existingPanel) {
+        existingPanel.remove();
     }
+
+    // Create new results panel
+    const resultsPanel = document.createElement('div');
+    resultsPanel.id = 'response-search-results';
+    document.querySelector('.search-container').appendChild(resultsPanel);
 
     const resultsList = matches.map(([index, data]) => {
         const method = data.request.method;
@@ -140,6 +149,7 @@ const showSearchResults = (matches, searchText) => {
         });
     });
 };
+
 
 const getMatchSnippet = (content, searchText) => {
     const maxLength = 200;
