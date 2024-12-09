@@ -137,11 +137,13 @@ input[type="submit"]:hover {
   font-size: 1em;
   font-weight: bold;
   color: #CCCCCC;
+  width: 100%;
 }
 
 #wizard-message {
   font-size: 1em;
   color: #CCCCCC;
+  width: 100%;
 }
 
 /* Main Content Layout */
@@ -1039,6 +1041,7 @@ input[type="submit"]:hover {
 .loading-overlay .loading-text {
   color: #CCCCCC;
   font-size: 0.9em;
+  animation: float 1s ease-in-out infinite;
 }
 
 .clear-cache-btn {
@@ -1095,6 +1098,7 @@ input[type="submit"]:hover {
   width: 120px;
   height: 120px;
   margin: 20px auto;
+  animation: float 1s ease-in-out infinite;
 }
 
 .circular-progress circle {
@@ -1124,18 +1128,32 @@ input[type="submit"]:hover {
   font-size: 1.2em;
   color: #CCCCCC;
   white-space: nowrap;
+  animation: float 1s ease-in-out infinite;
 }
 
 .time-remaining {
   position: absolute;
   bottom: -30px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-60%);
   font-size: 0.9em;
   color: #AAAAAA;
   white-space: nowrap;
+  animation: float 1s ease-in-out infinite;
 }
 
 .circular-progress.hidden {
   display: none;
+}
+
+@keyframes float {
+  0% {
+    transform: translate(-20%, 0);
+  }
+  50% {
+    transform: translate(-20%, -15px);
+  }
+  100% {
+    transform: translate(-20%, 0);
+  }
 }
