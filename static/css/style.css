@@ -1157,3 +1157,11 @@ input[type="submit"]:hover {
     transform: translate(-20%, 0);
   }
 }
+
+.status.unknown {
+    color: #FF6961;  /* Same red used for errors */
+}
+
+#request-list li.status-no-response {
+    border-left: 4px solid #FF6961;
+}

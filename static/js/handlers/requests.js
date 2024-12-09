@@ -63,7 +63,7 @@ export const filterRequests = () => {
 
         if (filters.errorOnly) {
             const statusCode = parseInt(item.dataset.statusCode);
-            matches.error = statusCode >= 400;
+            matches.error = statusCode >= 400 || item.dataset.statusCode === '';
         }
 
         const isVisible = Object.values(matches).every(Boolean);
@@ -92,14 +92,11 @@ const searchInResponses = (searchText) => {
         return;
     }
     
-    // Use only window.requestCache for searching
     const matches = Object.entries(window.requestCache).filter(([_, data]) => {
         const responseContent = data.response?.content?.text || '';
-        // Ensure we only match once per response
         return responseContent.toLowerCase().includes(searchText.toLowerCase());
     });
 
-    // Remove any potential duplicates by unique index
     const uniqueMatches = Array.from(new Map(matches).entries());
 
     document.getElementById('search-results-count').textContent = 
@@ -108,15 +105,12 @@ const searchInResponses = (searchText) => {
     showSearchResults(uniqueMatches, searchText);
 };
 
-
 const showSearchResults = (matches, searchText) => {
-    // Remove existing results panel if it exists
     const existingPanel = document.getElementById('response-search-results');
     if (existingPanel) {
         existingPanel.remove();
     }
 
-    // Create new results panel
     const resultsPanel = document.createElement('div');
     resultsPanel.id = 'response-search-results';
     document.querySelector('.search-container').appendChild(resultsPanel);
@@ -149,7 +143,6 @@ const showSearchResults = (matches, searchText) => {
         });
     });
 };
-
 
 const getMatchSnippet = (content, searchText) => {
     const maxLength = 200;

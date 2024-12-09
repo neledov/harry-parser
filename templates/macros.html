@@ -1,4 +1,3 @@
-<!-- templates/macros.html -->
 {% macro render_request_item(index, entry) %}
     {% set has_response = entry.response and entry.response.status %}
     {% set status_code = entry.response.status if has_response else 'No Status' %}
@@ -10,7 +9,7 @@
         'redirection' if status_code|int >= 300 and status_code|int < 400 else
         'client-error' if status_code|int >= 400 and status_code|int < 500 else
         'server-error' if status_code|int >= 500 else
-        'unknown'
+        'unknown error'
     ) %}
     {% set is_saml = 'saml' in entry.request.url|lower or 'sso' in entry.request.url|lower or
                      'saml' in (entry.request.postData.text|lower if entry.request.postData else '') %}
@@ -24,7 +23,7 @@
                     error-request
                 {% endif %}
             {% else %}
-                status-no-response
+                status-no-response error-request
             {% endif %}
             {% if is_saml %}
                 saml-request
