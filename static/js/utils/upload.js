@@ -35,7 +35,6 @@ export const handleFileUpload = () => {
                         const remaining = (e.total - e.loaded) / uploadSpeed;
                         
                         updateUploadProgress(progress, formatTimeRemaining(remaining));
-                        console.log('remaining:', remaining, 'type:', typeof remaining);
 
                     }
                 };
