@@ -22,42 +22,43 @@
 <div id="main-content">
     <div class="left-panel">
         <div class="filter-container">
-            <input type="text" id="search" placeholder="Search URLs..." aria-label="Search URLs">
+            <fieldset class="quick-filters">
+                <legend>Quick Filters</legend>
+                <select id="method-filter" aria-label="Filter by HTTP Method">
+                    <option value="">All Methods</option>
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
 
-            <select id="method-filter" aria-label="Filter by HTTP Method">
-                <option value="">All Methods</option>
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="PUT">PUT</option>
-                <option value="DELETE">DELETE</option>
-            </select>
+                <select id="status-filter" aria-label="Filter by Status Code">
+                    <option value="">All Status Codes</option>
+                    <option value="2">2xx Success</option>
+                    <option value="3">3xx Redirection</option>
+                    <option value="4">4xx Client Error</option>
+                    <option value="5">5xx Server Error</option>
+                </select>
 
-            <select id="status-filter" aria-label="Filter by Status Code">
-                <option value="">All Status Codes</option>
-                <option value="2">2xx Success</option>
-                <option value="3">3xx Redirection</option>
-                <option value="4">4xx Client Error</option>
-                <option value="5">5xx Server Error</option>
-            </select>
+                <select id="content-type-filter" aria-label="Filter by Content Type">
+                    <option value="">All Content Types</option>
+                    <option value="application/json">JSON</option>
+                    <option value="text/html">HTML</option>
+                    <option value="text/css">CSS</option>
+                    <option value="application/xml">XML</option>
+                    <option value="application/samlrequest">SAML</option>
+                </select>
 
-            <select id="content-type-filter" aria-label="Filter by Content Type">
-                <option value="">All Content Types</option>
-                <option value="application/json">JSON</option>
-                <option value="text/html">HTML</option>
-                <option value="text/css">CSS</option>
-                <option value="application/xml">XML</option>
-                <option value="application/samlrequest">SAML</option>
-            </select>
+                <label for="error-only" class="error-only-label">
+                    <input type="checkbox" id="error-only" aria-label="Show Suspicous">
+                    Show Suspicous
+                </label>
 
-            <label for="error-only" class="error-only-label">
-                <input type="checkbox" id="error-only" aria-label="Show Errors Only">
-                Show Errors Only
-            </label>
-
-            <label for="saml-only" class="saml-only-label">
-                <input type="checkbox" id="saml-only" aria-label="Show SAML Flow Only">
-                Show SAML Flow Only
-            </label>
+                <label for="saml-only" class="saml-only-label">
+                    <input type="checkbox" id="saml-only" aria-label="Show SAML Flow Only">
+                    Show SAML
+                </label>
+            </fieldset>
         </div>
 
         <ul id="request-list" role="listbox">

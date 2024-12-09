@@ -22,7 +22,6 @@ export const loadRequestDetail = async (index) => {
 
 export const filterRequests = () => {
     const filters = {
-        search: document.getElementById("search").value.toLowerCase(),
         method: document.getElementById("method-filter").value,
         status: document.getElementById("status-filter").value,
         contentType: document.getElementById("content-type-filter").value,
@@ -35,17 +34,12 @@ export const filterRequests = () => {
         if (!item.dataset.index) return;
 
         const matches = {
-            search: true,
             method: true,
             status: true,
             contentType: true,
             error: true,
             saml: !filters.samlOnly || item.classList.contains('saml-request')
         };
-
-        if (filters.search) {
-            matches.search = item.querySelector(".url").textContent.toLowerCase().includes(filters.search);
-        }
 
         if (filters.method) {
             matches.method = item.querySelector(".method").textContent.trim() === filters.method;
@@ -94,16 +88,28 @@ const searchInResponses = (searchText) => {
     
     const matches = Object.entries(window.requestCache).filter(([_, data]) => {
         const responseContent = data.response?.content?.text || '';
-        return responseContent.toLowerCase().includes(searchText.toLowerCase());
+        const requestContent = data.request?.postData?.text || '';
+        const requestHeaders = data.request?.headers?.map(h => `${h.name}: ${h.value}`).join('\n') || '';
+        const responseHeaders = data.response?.headers?.map(h => `${h.name}: ${h.value}`).join('\n') || '';
+        
+        const searchTarget = [
+            responseContent,
+            requestContent,
+            requestHeaders,
+            responseHeaders,
+            data.request?.url || ''
+        ].join(' ').toLowerCase();
+        
+        return searchTarget.includes(searchText.toLowerCase());
     });
 
     const uniqueMatches = Array.from(new Map(matches).entries());
-
     document.getElementById('search-results-count').textContent = 
         `Found: ${uniqueMatches.length} matches`;
 
     showSearchResults(uniqueMatches, searchText);
 };
+
 
 const showSearchResults = (matches, searchText) => {
     const existingPanel = document.getElementById('response-search-results');
