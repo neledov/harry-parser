@@ -134,12 +134,13 @@ input[type="submit"]:hover {
 }
 
 #processing-message {
-  font-size: 1.5em;
+  font-size: 1em;
+  font-weight: bold;
   color: #CCCCCC;
 }
 
 #wizard-message {
-  font-weight: bold;
+  font-size: 1em;
   color: #CCCCCC;
 }
 
