@@ -794,6 +794,24 @@ input[type="submit"]:hover {
   color: #CCCCCC;
 }
 
+.files-group {
+  border: 1px solid #3A3A3A;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 20px;
+  background: #2A2A2A;
+}
+
+.files-group legend {
+  color: #CCCCCC;
+  padding: 0 10px;
+  font-size: 0.9em;
+}
+
+.files-group .filter-container {
+  margin-bottom: 15px;
+}
+
 .upload-date {
   color: #888888;
   font-size: 0.9em;
@@ -1189,3 +1207,5 @@ input[type="submit"]:hover {
 .clear-cache-btn:hover {
   background: #404040;
 }
+
+
