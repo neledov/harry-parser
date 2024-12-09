@@ -220,7 +220,7 @@ export class HARSocketClient {
             }
 
             if (loadingText) {
-                loadingText.textContent = 'Loading from server...';
+                loadingText.textContent = 'loading from server...';
             }
             this.socket.emit('request_har_data', { filename });
 
