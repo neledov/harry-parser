@@ -18,16 +18,27 @@
             align-items: center;
             z-index: 9999;
             opacity: 0;
-            transition: opacity 1s ease;
+            transition: opacity 0.7s ease;
             pointer-events: none;
         }
         .page-transition.active {
             opacity: 1;
             pointer-events: all;
         }
+        @keyframes fadeOutGlasses {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0; }
+        }
         .page-transition i {
-            font-size: 120px;
+            font-size: 48px;
             color: #CCCCCC;
+            transition: all 0.3s ease;
+            animation: fadeOutGlasses 0.3s ease forwards;
+        }
+        .page-transition.active i {
+            animation: none;
+            transform: scale(1);
+            opacity: 1;
         }
     </style>
     <!-- Primary CSS -->
