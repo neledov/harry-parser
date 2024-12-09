@@ -1106,9 +1106,12 @@ input[type="submit"]:hover {
 .circular-progress .progress {
   stroke: #CCCCCC;
   stroke-linecap: round;
+  stroke-dasharray: 283;  /* This is approximately 2 * PI * 45 (radius) */
+  stroke-dashoffset: 283; /* Start at full offset (empty) */
   transition: stroke-dashoffset 0.3s ease;
   fill: none;
 }
+
 
 .circular-progress .progress-text {
   position: absolute;
