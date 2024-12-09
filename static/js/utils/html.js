@@ -335,6 +335,7 @@ export const generateRequestListItem = (entry) => {
     const url = entry.request.url;
     const status = entry.response?.status || 'No Status';
     const contentType = entry.response?.content?.mimeType || 'Unknown';
+    const responseSize = entry.response?.content?.size || 0;
     const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
     
     const statusCategory = 
@@ -353,6 +354,10 @@ export const generateRequestListItem = (entry) => {
             ${isSaml ? '<i class="fas fa-shield-alt saml-icon" title="SAML Request"></i>' : ''}
         </div>
         <div class="url" title="${url}">${url}</div>
-        <div class="status ${statusCategory}">Status: ${status}</div>
+        <div class="request-info">
+            <span class="status ${statusCategory}">Status: ${status}</span>
+            <span class="size">${(responseSize/1024).toFixed(1)} KB</span>
+        </div>
     `;
 };
+

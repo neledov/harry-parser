@@ -4,6 +4,7 @@
     {% set content_type = entry.response.content.mimeType if has_response and entry.response.content.mimeType else 'Unknown' %}
     {% set method = entry.request.method %}
     {% set method_class = method if method in ['GET', 'POST', 'PUT', 'DELETE'] else 'OTHER' %}
+    {% set response_size = entry.response.content.size if has_response and entry.response.content.size else 0 %}
     {% set status_category = (
         'success' if status_code|int >= 200 and status_code|int < 300 else
         'redirection' if status_code|int >= 300 and status_code|int < 400 else
@@ -17,13 +18,14 @@
         data-status-code="{{ status_code }}"
         data-content-type="{{ content_type }}"
         class="
+            {% if status_code == 'No Status' %}
+                error-request
+            {% endif %}
             {% if has_response %}
                 status-{{ entry.response.status }}
                 {% if entry.response.status|int >= 400 %}
                     error-request
                 {% endif %}
-            {% else %}
-                status-no-response error-request
             {% endif %}
             {% if is_saml %}
                 saml-request
@@ -39,10 +41,9 @@
             {% endif %}
         </div>
         <div class="url" title="{{ entry.request.url }}">{{ entry.request.url }}</div>
-        {% if has_response %}
-            <div class="status {{ status_category }}">Status: {{ status_code }}</div>
-        {% else %}
-            <div class="status unknown">Status: No Response</div>
-        {% endif %}
+        <div class="request-info">
+            <span class="status {{ status_category }}">Status: {{ status_code }}</span>
+            <span class="size">{{ (response_size|filesizeformat) if response_size else '0 B' }}</span>
+        </div>
     </li>
 {% endmacro %}

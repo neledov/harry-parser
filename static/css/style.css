@@ -1165,3 +1165,16 @@ input[type="submit"]:hover {
 #request-list li.status-no-response {
     border-left: 4px solid #FF6961;
 }
+
+.request-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.size {
+    color: #888888;
+    font-size: 0.9em;
+    font-family: 'Consolas', monospace;
+}
