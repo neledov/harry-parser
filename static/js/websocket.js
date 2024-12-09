@@ -40,7 +40,7 @@ export class HARSocketClient {
                 console.log('Connected to WebSocket');
                 const loadingText = document.querySelector('.loading-overlay .loading-text');
                 if (loadingText) {
-                    loadingText.textContent = 'Connected';
+                    loadingText.textContent = 'connected to WSS';
                 }
                 resolve();
             });
@@ -68,7 +68,7 @@ export class HARSocketClient {
         this.socket.on('connect', () => {
             const loadingText = document.querySelector('.loading-overlay .loading-text');
             if (loadingText) {
-                loadingText.textContent = 'Connected';
+                loadingText.textContent = 'connected to WSS';
             }
         });
 
