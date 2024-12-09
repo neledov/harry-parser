@@ -587,16 +587,19 @@ input[type="submit"]:hover {
 }
 
 .logout-btn {
+  background: #333333;
   color: #CCCCCC;
-  text-decoration: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 5px;
-  transition: color 0.3s ease;
 }
 
 .logout-btn:hover {
-  color: #CCCCCC;
+  background: #404040;
 }
 
 /* SAML Section */

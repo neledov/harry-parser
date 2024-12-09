@@ -36,14 +36,20 @@
         .page-transition i {
             font-size: 48px;
             color: #CCCCCC;
-            transition: all 0.3s ease;
-            animation: fadeOutGlasses 0.3s ease forwards;
+            transition: all 0.6s ease;
+            animation: fadeOutGlasses 0.6s ease forwards;
         }
         .page-transition.active i {
             animation: bounce 1s ease infinite;
             transform: scale(1);
             opacity: 1;
         }
+        .header-left h1 a:hover,
+        .header-left h1 a:hover i {
+            color: #FFFFFF;
+            transition: color 0.3s ease;
+}
+
     </style>
     <!-- Primary CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" media="all">
