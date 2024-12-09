@@ -199,7 +199,7 @@ export class HARSocketClient {
             
             if (cachedData && cachedData.length > 0) {
                 if (loadingText) {
-                    loadingText.textContent = 'Loading from cache...';
+                    loadingText.textContent = 'loading from cache...';
                 }
 
                 const totalEntries = cachedData.length;
