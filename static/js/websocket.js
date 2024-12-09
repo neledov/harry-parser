@@ -236,13 +236,15 @@ export class HARSocketClient {
 }
 
 function formatTimeRemaining(seconds) {
-    if (seconds < 60) {
-        return `${seconds} seconds remaining`;
-    } else if (seconds < 3600) {
-        const minutes = Math.ceil(seconds / 60);
-        return `${minutes} minute${minutes > 1 ? 's' : ''} remaining`;
+    const s = Math.round(Number(seconds)); // Ensure 's' is an integer
+    if (s < 60) {
+        return `${s} second${s === 1 ? '' : 's'} remaining`;
+    } else if (s < 3600) {
+        const minutes = Math.round(s / 60);
+        return `${minutes} minute${minutes === 1 ? '' : 's'} remaining`;
     } else {
-        const hours = Math.ceil(seconds / 3600);
-        return `${hours} hour${hours > 1 ? 's' : ''} remaining`;
+        const hours = Math.round(s / 3600);
+        return `${hours} hour${hours === 1 ? '' : 's'} remaining`;
     }
 }
+
