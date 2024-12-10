@@ -164,33 +164,39 @@ const showSearchResults = (matches, searchText) => {
 };
 
 const getMatchSnippet = (content, searchText) => {
-  // Add null check and provide default empty string
-  const safeContent = (content || "").toString();
-  const maxLength = 200;
-  const lowerContent = safeContent.toLowerCase();
-  const index = lowerContent.indexOf(searchText.toLowerCase());
+    if (!content || !searchText) return "";
+    
+    const safeContent = content.toString();
+    const index = safeContent.toLowerCase().indexOf(searchText.toLowerCase());
+    if (index === -1) return "";
 
-  if (index === -1) return "";
+    // Extract snippet with context
+    const snippetStart = Math.max(0, index - 50);
+    const snippetEnd = Math.min(safeContent.length, index + searchText.length + 50);
+    let snippet = safeContent.slice(snippetStart, snippetEnd);
 
-  let start = Math.max(0, index - 50);
-  let end = Math.min(safeContent.length, index + searchText.length + 50);
-  let snippet = safeContent.slice(start, end);
+    // Add ellipsis if needed
+    if (snippetStart > 0) snippet = "..." + snippet;
+    if (snippetEnd < safeContent.length) snippet = snippet + "...";
 
-  if (start > 0) snippet = "..." + snippet;
-  if (end < safeContent.length) snippet = snippet + "...";
-
-  return snippet.replace(
-    /[&<>"']/g,
-    (char) =>
-      ({
+    // First escape HTML special characters
+    const escapedSnippet = snippet.replace(/[&<>"']/g, char => ({
         "&": "&amp;",
         "<": "&lt;",
         ">": "&gt;",
         '"': "&quot;",
-        "'": "&#39;",
-      }[char])
-  );
+        "'": "&#39;"
+    }[char]));
+
+    // Create regex pattern with escaped special characters
+    const searchPattern = searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const highlightRegex = new RegExp(`(${searchPattern})`, 'gi');
+
+    // Add highlight marks
+    return escapedSnippet.replace(highlightRegex, '<mark>$1</mark>');
 };
+
+
 
 const hideSearchResults = () => {
   const resultsPanel = document.getElementById("response-search-results");
