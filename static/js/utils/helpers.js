@@ -101,3 +101,11 @@ export const formatBandwidth = (bps) => {
     
     return `${value.toFixed(1)} ${units[unitIndex]}`;
 };
+
+export const isSuspiciousRequest = (request, timings) => {
+    const statusCode = parseInt(request.status);
+    const totalTime = timings ? 
+        Object.values(timings).reduce((a, b) => a + Math.max(0, b), 0) : 0;
+    
+    return statusCode >= 400 || !request.status || totalTime > 2000;
+};

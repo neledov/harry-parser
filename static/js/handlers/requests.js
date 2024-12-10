@@ -1,4 +1,4 @@
-import { showToast, copyToClipboard, debounce } from "../utils/helpers.js";
+import { showToast, copyToClipboard, debounce, isSuspiciousRequest } from "../utils/helpers.js";
 import { generateDetailHTML } from "../utils/html.js";
 import { generateCurlCommand } from "../utils/curl.js";
 import { createTimelineChart } from "../visualization/chart.js";
@@ -63,8 +63,8 @@ export const filterRequests = () => {
     }
 
     if (filters.errorOnly) {
-      const statusCode = parseInt(item.dataset.statusCode);
-      matches.error = statusCode >= 400 || item.dataset.statusCode === "";
+        const requestData = window.requestCache[item.dataset.index];
+        matches.error = isSuspiciousRequest(requestData.response, requestData.timings);
     }
 
     const isVisible = Object.values(matches).every(Boolean);
