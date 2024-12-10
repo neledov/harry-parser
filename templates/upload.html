@@ -21,20 +21,28 @@
             <input type="text" id="file-search" placeholder="Search files..." aria-label="Search files">
         </div>
         <div class="files-list">
+            <div class="files-header">
+                <button class="sort-btn" data-sort="name">Name <i class="fas fa-sort"></i></button>
+                <button class="sort-btn" data-sort="date">Upload Date <i class="fas fa-sort"></i></button>
+                <button class="sort-btn" data-sort="size">Size <i class="fas fa-sort"></i></button>
+                <div class="actions-header"></div>
+            </div>
             <ul id="files-list">
                 {% for file in files %}
                 <li>
-                    <a href="{{ url_for('requests_page', filename=file.filename) }}">
-                        {{ file.filename }}
-                    </a>
+                    <div class="file-name">
+                        <a href="{{ url_for('requests_page', filename=file.filename) }}">
+                            {{ file.filename }}
+                        </a>
+                    </div>
+                    <div class="file-date">
+                        <span class="upload-date">{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                    </div>
+                    <div class="file-size">
+                        <span class="file-size" data-bytes="{{ file.filesize }}">{{ file.filesize|filesizeformat }}</span>
+                    </div>
                     <div class="file-actions">
-                        <span class="file-info">
-                            <span class="upload-date">{{ file.upload_date.strftime('%Y-%m-%d %H:%M:%S') }}</span>
-                            <span class="file-size">{{ file.filesize|filesizeformat }}</span>
-                        </span>
-                        <i class="fas fa-trash delete-btn" 
-                           data-filename="{{ file.filename }}"
-                           title="Delete file"></i>
+                        <i class="fas fa-trash delete-btn" data-filename="{{ file.filename }}" title="Delete file"></i>
                     </div>
                 </li>
                 {% endfor %}
@@ -51,13 +59,65 @@
     handleFileUpload();
     
     const fileSearch = document.getElementById("file-search");
+    const filesList = document.getElementById("files-list");
+    let currentSort = { field: 'name', direction: 'asc' };
+
+    const sortFiles = (field) => {
+        const items = Array.from(filesList.children);
+        
+        if (currentSort.field === field) {
+            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+        } else {
+            currentSort = { field, direction: 'asc' };
+        }
+        
+        items.sort((a, b) => {
+            let valueA, valueB;
+            
+            switch(field) {
+                case 'name':
+                    valueA = a.querySelector('.file-name a').textContent;
+                    valueB = b.querySelector('.file-name a').textContent;
+                    break;
+                case 'date':
+                    valueA = new Date(a.querySelector('.upload-date').textContent);
+                    valueB = new Date(b.querySelector('.upload-date').textContent);
+                    break;
+                case 'size':
+                    valueA = parseInt(a.querySelector('.file-size').dataset.bytes || 0);
+                    valueB = parseInt(b.querySelector('.file-size').dataset.bytes || 0);
+                    break;
+            }
+            
+            return currentSort.direction === 'asc' 
+                ? valueA > valueB ? 1 : -1
+                : valueA < valueB ? 1 : -1;
+        });
+        
+        items.forEach(item => filesList.appendChild(item));
+        updateSortButtons(field);
+    };
+
+    const updateSortButtons = (activeField) => {
+        document.querySelectorAll('.sort-btn').forEach(btn => {
+            btn.classList.remove('active', 'asc', 'desc');
+            if (btn.dataset.sort === activeField) {
+                btn.classList.add('active', currentSort.direction);
+            }
+        });
+    };
+
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.addEventListener('click', () => sortFiles(btn.dataset.sort));
+    });
+
     if (fileSearch) {
         fileSearch.addEventListener("input", debounce(() => {
             const searchTerm = fileSearch.value.toLowerCase();
             const filesList = document.querySelectorAll('#files-list li');
             
             filesList.forEach(item => {
-                const fileName = item.querySelector('a').textContent.toLowerCase();
+                const fileName = item.querySelector('.file-name a').textContent.toLowerCase();
                 item.style.display = fileName.includes(searchTerm) ? '' : 'none';
             });
         }, 300));

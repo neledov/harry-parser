@@ -43,7 +43,7 @@
         <div class="url" title="{{ entry.request.url }}">{{ entry.request.url }}</div>
         <div class="request-info">
             <span class="status {{ status_category }}">Status: {{ status_code }}</span>
-            <span class="size">{{ (response_size|filesizeformat) if response_size else '0 B' }}</span>
+            <span class="size" data-bytes="{{ response_size }}">{{ (response_size/1024).toFixed(1) }} KB</span>
         </div>
     </li>
 {% endmacro %}
