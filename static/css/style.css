@@ -1323,3 +1323,67 @@ input[type="submit"]:hover {
   border-radius: 3px;
 }
 
+.quick-filters-btn {
+    background: #333333;
+    color: #CCCCCC;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.quick-filters-btn.active {
+    background: #9370DB;
+    color: #1A1A1A;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #2A2A2A;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 300px;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    color: #CCCCCC;
+    cursor: pointer;
+    font-size: 1.2em;
+}
+
+.modal.show {
+    display: block;
+}

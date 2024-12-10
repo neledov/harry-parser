@@ -95,7 +95,7 @@ const searchInResponses = (searchText) => {
 
     if (searchText.length < 3) {
         hideSearchResults();
-        document.getElementById("search-results-count").textContent = "Search term must be at least 3 characters";
+        showToast("Search term must be at least 3 characters", 2000);
         return;
     }
 
@@ -131,7 +131,7 @@ const searchInResponses = (searchText) => {
 
             if (processedChunks === chunks.length) {
                 const uniqueMatches = Array.from(new Map(matches).entries());
-                document.getElementById("search-results-count").textContent = `Found: ${uniqueMatches.length} matches`;
+                showToast(`Found ${uniqueMatches.length} matches`, 2000);
                 showSearchResults(uniqueMatches, searchText);
             }
         };
@@ -327,6 +327,43 @@ export const updateSelectedRequest = (index) => {
     selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 };
+
+const initializeFiltersModal = () => {
+    const modal = document.getElementById('filters-modal');
+    const btn = document.getElementById('quick-filters-btn');
+    const closeBtn = document.querySelector('.close-modal');
+    
+    const updateFilterButton = () => {
+        const hasActiveFilters = [
+            'method-filter', 
+            'status-filter', 
+            'content-type-filter'
+        ].some(id => document.getElementById(id).value !== '') ||
+        document.getElementById('error-only').checked ||
+        document.getElementById('saml-only').checked;
+        
+        btn.classList.toggle('active', hasActiveFilters);
+    };
+
+    btn.onclick = () => modal.classList.add('show');
+    closeBtn.onclick = () => modal.classList.remove('show');
+    
+    window.onclick = (e) => {
+        if (e.target === modal) modal.classList.remove('show');
+    };
+
+    // Update button state when filters change
+    document.querySelectorAll('select, input[type="checkbox"]').forEach(el => {
+        el.addEventListener('change', () => {
+            filterRequests();
+            updateFilterButton();
+        });
+    });
+};
+
+// Call this in your existing initialization code
+document.addEventListener('DOMContentLoaded', initializeFiltersModal);
+
 
 document.getElementById("response-search")?.addEventListener(
   "input",
