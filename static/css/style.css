@@ -1313,3 +1313,12 @@ input[type="submit"]:hover {
   color: #1A1A1A;
   background: #FF6961;
 }
+
+.bandwidth {
+  color: #888888;
+  font-size: 0.5em;
+  font-family: 'Consolas', monospace;
+  padding: 2px 4px;
+  background: #333333;
+  border-radius: 3px;
+}

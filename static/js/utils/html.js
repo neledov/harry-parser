@@ -1,4 +1,4 @@
-import { escapeHTML, formatJSON } from "./helpers.js";
+import { escapeHTML, formatJSON,calculateBandwidth } from "./helpers.js";
 import { decodeSamlMessage, parseSamlXml } from "./saml.js";
 import { analyzeSamlSecurity } from "./saml-analyzer.js";
 
@@ -390,6 +390,8 @@ export const generateRequestListItem = (entry) => {
     const contentType = entry.response?.content?.mimeType || 'Unknown';
     const responseSize = entry.response?.content?.size || 0;
     const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
+    const downloadTime = entry.timings.receive;
+    const bandwidth = calculateBandwidth(entry);
     
     // More precise version detection from HAR entry
     let httpVersion = 'HTTP/1.1'; // Default fallback
@@ -445,8 +447,10 @@ export const generateRequestListItem = (entry) => {
         <div class="request-info">
             <span class="status ${statusCategory}">Status: ${status}</span>
             <span class="size">${(responseSize/1024).toFixed(1)} KB</span>
+            <span class="bandwidth">${bandwidth}</span>
         </div>
     `;
 };
+
 
 
