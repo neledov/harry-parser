@@ -191,32 +191,34 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
 };
 
 export const generateSamlSection = (data) => {
-  if (!data.isSaml) return '';
+  if (!data.isSaml) return "";
 
   let samlData = null;
   let decoded = null;
-    
+
   // Extract SAML data from POST or URL parameters
   if (data.request.postData?.text) {
-      const samlParam = new URLSearchParams(data.request.postData.text).get('SAMLResponse') || 
-                       new URLSearchParams(data.request.postData.text).get('SAMLRequest');
-      if (samlParam) {
-          decoded = decodeSamlMessage(samlParam);
-          if (decoded) samlData = parseSamlXml(decoded);
-      }
+    const samlParam =
+      new URLSearchParams(data.request.postData.text).get("SAMLResponse") ||
+      new URLSearchParams(data.request.postData.text).get("SAMLRequest");
+    if (samlParam) {
+      decoded = decodeSamlMessage(samlParam);
+      if (decoded) samlData = parseSamlXml(decoded);
+    }
   }
 
   if (!samlData && data.request.url) {
-      const url = new URL(data.request.url);
-      const samlParam = url.searchParams.get('SAMLResponse') || 
-                       url.searchParams.get('SAMLRequest');
-      if (samlParam) {
-          decoded = decodeSamlMessage(samlParam);
-          if (decoded) samlData = parseSamlXml(decoded);
-      }
+    const url = new URL(data.request.url);
+    const samlParam =
+      url.searchParams.get("SAMLResponse") ||
+      url.searchParams.get("SAMLRequest");
+    if (samlParam) {
+      decoded = decodeSamlMessage(samlParam);
+      if (decoded) samlData = parseSamlXml(decoded);
+    }
   }
 
-  if (!samlData || !decoded) return '';
+  if (!samlData || !decoded) return "";
 
   const securityAnalysis = analyzeSamlSecurity(samlData, decoded);
 
@@ -230,38 +232,58 @@ export const generateSamlSection = (data) => {
                   <strong>Type:</strong> ${samlData.type}
               </div>
               <div class="overview-item">
-                  <strong>Issuer:</strong> ${samlData.issuer || 'Not specified'}
+                  <strong>Issuer:</strong> ${samlData.issuer || "Not specified"}
               </div>
-              <div class="overview-item ${securityAnalysis.validations.signature.status}">
-                  <strong>Signature:</strong> ${securityAnalysis.validations.signature.status}
+              <div class="overview-item ${
+                securityAnalysis.validations.signature.status
+              }">
+                  <strong>Signature:</strong> ${
+                    securityAnalysis.validations.signature.status
+                  }
               </div>
-              <div class="overview-item ${securityAnalysis.validations.encryption.status}">
-                  <strong>Encryption:</strong> ${securityAnalysis.validations.encryption.status}
+              <div class="overview-item ${
+                securityAnalysis.validations.encryption.status
+              }">
+                  <strong>Encryption:</strong> ${
+                    securityAnalysis.validations.encryption.status
+                  }
               </div>
           </div>
 
           <!-- Raw SAML Panel -->
           <div class="saml-raw">
-              <button class="copy-button" data-text="${encodeURIComponent(decoded)}" aria-label="Copy Raw SAML">
+              <button class="copy-button" data-text="${encodeURIComponent(
+                decoded
+              )}" aria-label="Copy Raw SAML">
                   <i class="fas fa-copy"></i> Copy Raw SAML
               </button>
-              <pre><code class="language-markup">${escapeHTML(decoded)}</code></pre>
+              <pre><code class="language-markup">${escapeHTML(
+                decoded
+              )}</code></pre>
           </div>
 
           <!-- Security Analysis Panel -->
           <div class="saml-security">
               <div class="security-grid">
-                  <div class="security-item ${securityAnalysis.validations.signature.status}">
+                  <div class="security-item ${
+                    securityAnalysis.validations.signature.status
+                  }">
                       <h4><i class="fas fa-signature"></i> Signature</h4>
                       <p>${securityAnalysis.validations.signature.details}</p>
-                      ${securityAnalysis.validations.signature.algorithm ? `
+                      ${
+                        securityAnalysis.validations.signature.algorithm
+                          ? `
                           <div class="algorithm-info">
                               <span>Algorithm: ${securityAnalysis.validations.signature.algorithm.name}</span>
                           </div>
-                      ` : ''}
+                      `
+                          : ""
+                      }
                   </div>
 
-                  <div class="security-item ${securityAnalysis.validations.encryption.status}">
+                  <div class="security-item ${
+                    securityAnalysis.validations.encryption.status
+                  }">
                       <h4><i class="fas fa-lock"></i> Encryption</h4>
                       <p>${securityAnalysis.validations.encryption.details}</p>
                   </div>
@@ -271,59 +293,90 @@ export const generateSamlSection = (data) => {
           <!-- Certificate Details -->
           <div class="certificate-section">
               <h3><i class="fas fa-certificate"></i> Certificates</h3>
-              ${securityAnalysis.certificateInfo ? securityAnalysis.certificateInfo.map((cert, index) => `
+              ${
+                securityAnalysis.certificateInfo
+                  ? securityAnalysis.certificateInfo
+                      .map(
+                        (cert, index) => `
     <div class="certificate-item" data-cert-index="${index + 1}">
         <button class="toggle-cert-details">
             <i class="fas fa-chevron-down"></i> Certificate ${index + 1} 
-            <span class="cert-status ${cert.status.isValid ? 'valid' : 'invalid'}">
-                ${cert.status.isValid ? 'Valid' : 'Invalid'}
+            <span class="cert-status ${
+              cert.status.isValid ? "valid" : "invalid"
+            }">
+                ${cert.status.isValid ? "Valid" : "Invalid"}
             </span>
         </button>
         <div class="certificate-details hidden">
             ${renderCertificateDetails(cert)}
         </div>
     </div>
-`).join('') : '<p>No certificates found</p>'}
+`
+                      )
+                      .join("")
+                  : "<p>No certificates found</p>"
+              }
           </div>
           <!-- SAML Attributes -->
-          ${samlData.attributes.length ? `
+          ${
+            samlData.attributes.length
+              ? `
               <div class="saml-attributes">
                   <h3><i class="fas fa-list"></i> Attributes</h3>
                   <div class="attributes-grid">
-                      ${samlData.attributes.map(attr => `
+                      ${samlData.attributes
+                        .map(
+                          (attr) => `
                           <div class="attribute-item">
                               <strong>${escapeHTML(attr.name)}</strong>
-                              <span>${attr.values.map(val => escapeHTML(val)).join(', ')}</span>
+                              <span>${attr.values
+                                .map((val) => escapeHTML(val))
+                                .join(", ")}</span>
                           </div>
-                      `).join('')}
+                      `
+                        )
+                        .join("")}
                   </div>
               </div>
-          ` : ''}
+          `
+              : ""
+          }
 
 <!-- Conditions -->
-${samlData.conditions ? `
+${
+  samlData.conditions
+    ? `
     <div class="saml-conditions">
         <h3><i class="fas fa-clock"></i> Validity Conditions</h3>
         <div class="conditions-grid">
             ${renderTimestampValidation({
-                status: "valid",
-                notBefore: samlData.conditions.notBefore,
-                notOnOrAfter: samlData.conditions.notOnOrAfter,
-                isExpired: new Date() > new Date(samlData.conditions.notOnOrAfter),
-                isNotYetValid: new Date() < new Date(samlData.conditions.notBefore)
+              status: "valid",
+              notBefore: samlData.conditions.notBefore,
+              notOnOrAfter: samlData.conditions.notOnOrAfter,
+              isExpired:
+                new Date() > new Date(samlData.conditions.notOnOrAfter),
+              isNotYetValid:
+                new Date() < new Date(samlData.conditions.notBefore),
             })}
-            ${samlData.conditions.audiences.length ? `
+            ${
+              samlData.conditions.audiences.length
+                ? `
                 <div class="condition-item full-width">
                     <strong>Audiences:</strong>
                     <ul>
-                        ${samlData.conditions.audiences.map(aud => 
-                            `<li>${escapeHTML(aud)}</li>`).join('')}
+                        ${samlData.conditions.audiences
+                          .map((aud) => `<li>${escapeHTML(aud)}</li>`)
+                          .join("")}
                     </ul>
                 </div>
-            ` : ''}
+            `
+                : ""
+            }
         </div>
     </div>
-` : ''}
+`
+    : ""
+}
 
       </div>
   `;
@@ -338,10 +391,13 @@ export const generateRequestListItem = (entry) => {
     const responseSize = entry.response?.content?.size || 0;
     const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
     
-    // Extract HTTP version from headers
     const httpVersion = entry.request.httpVersion || 
                        entry.request.headers.find(h => h.name.toLowerCase() === 'x-ap-version')?.value ||
                        'http/1.1';
+    
+    const isHigherVersion = httpVersion.includes('2.0') || httpVersion.includes('3.0');
+    const isLowerVersion = httpVersion.includes('1.0') || httpVersion.includes('1.1')
+    const versionClass = isHigherVersion ? 'higher-version' : isLowerVersion ? 'lower-version' : '';
     
     const statusCategory = 
         status >= 200 && status < 300 ? 'success' :
@@ -352,7 +408,7 @@ export const generateRequestListItem = (entry) => {
     return `
         <div class="method ${methodClass}">
             ${method}
-            <span class="http-version">${httpVersion}</span>
+            <span class="http-version ${versionClass}">${httpVersion}</span>
         </div>
         <div class="url" title="${url}">${url}</div>
         <div class="request-info">
@@ -361,5 +417,4 @@ export const generateRequestListItem = (entry) => {
         </div>
     `;
 };
-
 

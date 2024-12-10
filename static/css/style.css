@@ -1303,3 +1303,13 @@ input[type="submit"]:hover {
   align-items: center;
   gap: 5px;
 }
+
+.http-version.higher-version {
+  color: #1A1A1A;
+  background: #FDFD96;
+}
+
+.http-version.lower-version {
+  color: #1A1A1A;
+  background: #FF6961;
+}
