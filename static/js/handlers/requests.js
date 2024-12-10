@@ -85,118 +85,168 @@ export const filterRequests = () => {
 };
 
 const searchInResponses = (searchText) => {
-  if (!window.requestCache || !searchText) {
-    hideSearchResults();
-    document.getElementById("search-results-count").textContent = "";
-    return;
-  }
+    if (!window.requestCache || !searchText) {
+        hideSearchResults();
+        document.getElementById("search-results-count").textContent = "";
+        return;
+    }
 
-  const matches = Object.entries(window.requestCache).filter(([_, data]) => {
-    const responseContent = data.response?.content?.text || "";
-    const requestContent = data.request?.postData?.text || "";
-    const requestHeaders =
-      data.request?.headers?.map((h) => `${h.name}: ${h.value}`).join("\n") ||
-      "";
-    const responseHeaders =
-      data.response?.headers?.map((h) => `${h.name}: ${h.value}`).join("\n") ||
-      "";
+    if (searchText.length < 3) {
+        hideSearchResults();
+        document.getElementById("search-results-count").textContent = "Search term must be at least 3 characters";
+        return;
+    }
 
-    const searchTarget = [
-      responseContent,
-      requestContent,
-      requestHeaders,
-      responseHeaders,
-      data.request?.url || "",
-    ]
-      .join(" ")
-      .toLowerCase();
+    try {
+        // Break search into chunks to prevent UI blocking
+        const chunkSize = 25;
+        const entries = Object.entries(window.requestCache);
+        const chunks = [];
+        
+        for (let i = 0; i < entries.length; i += chunkSize) {
+            chunks.push(entries.slice(i, i + chunkSize));
+        }
 
-    return searchTarget.includes(searchText.toLowerCase());
-  });
+        let matches = [];
+        let processedChunks = 0;
 
-  const uniqueMatches = Array.from(new Map(matches).entries());
-  document.getElementById(
-    "search-results-count"
-  ).textContent = `Found: ${uniqueMatches.length} matches`;
+        const processChunk = (chunk) => {
+            const chunkMatches = chunk.filter(([_, data]) => {
+                const searchTargets = {
+                    url: data.request?.url || "",
+                    requestHeaders: data.request?.headers?.map((h) => `${h.name}: ${h.value}`).join("\n") || "",
+                    responseHeaders: data.response?.headers?.map((h) => `${h.name}: ${h.value}`).join("\n") || "",
+                    requestContent: data.request?.postData?.text || "",
+                    responseContent: data.response?.content?.text || ""
+                };
 
-  showSearchResults(uniqueMatches, searchText);
+                return Object.values(searchTargets).some(text => 
+                    text.toLowerCase().includes(searchText.toLowerCase())
+                );
+            });
+
+            matches = matches.concat(chunkMatches);
+            processedChunks++;
+
+            if (processedChunks === chunks.length) {
+                const uniqueMatches = Array.from(new Map(matches).entries());
+                document.getElementById("search-results-count").textContent = `Found: ${uniqueMatches.length} matches`;
+                showSearchResults(uniqueMatches, searchText);
+            }
+        };
+
+        chunks.forEach((chunk, index) => {
+            setTimeout(() => processChunk(chunk), index * 10);
+        });
+
+    } catch (error) {
+        document.getElementById("search-results-count").textContent = "Search error - try refining your search";
+        hideSearchResults();
+    }
 };
 
+
 const showSearchResults = (matches, searchText) => {
-  const existingPanel = document.getElementById("response-search-results");
-  if (existingPanel) {
-    existingPanel.remove();
-  }
+    const existingPanel = document.getElementById("response-search-results");
+    if (existingPanel) existingPanel.remove();
 
-  const resultsPanel = document.createElement("div");
-  resultsPanel.id = "response-search-results";
-  document.querySelector(".search-container").appendChild(resultsPanel);
+    const resultsPanel = document.createElement("div");
+    resultsPanel.id = "response-search-results";
+    document.querySelector(".search-container").appendChild(resultsPanel);
 
-  const resultsList = matches
-    .map(([index, data]) => {
-      const method = data.request.method;
-      const url = data.request.url;
-      const status = data.response.status;
-      const snippet = getMatchSnippet(data.response.content.text, searchText);
+    const resultsList = matches.map(([index, data]) => {
+        const method = data.request.method;
+        const url = data.request.url;
+        const status = data.response.status;
 
-      return `
+        const snippets = [];
+        
+        // URL matches
+        if (url.toLowerCase().includes(searchText.toLowerCase())) {
+            snippets.push(`URL: ${getMatchSnippet(url, searchText)}`);
+        }
+
+        // Request headers matches
+        const reqHeaders = data.request?.headers?.map(h => `${h.name}: ${h.value}`).join("\n") || "";
+        if (reqHeaders.toLowerCase().includes(searchText.toLowerCase())) {
+            snippets.push(`Request Headers: ${getMatchSnippet(reqHeaders, searchText)}`);
+        }
+
+        // Response headers matches
+        const respHeaders = data.response?.headers?.map(h => `${h.name}: ${h.value}`).join("\n") || "";
+        if (respHeaders.toLowerCase().includes(searchText.toLowerCase())) {
+            snippets.push(`Response Headers: ${getMatchSnippet(respHeaders, searchText)}`);
+        }
+
+        // Request body matches
+        const reqContent = data.request?.postData?.text || "";
+        if (reqContent.toLowerCase().includes(searchText.toLowerCase())) {
+            snippets.push(`Request Body: ${getMatchSnippet(reqContent, searchText)}`);
+        }
+
+        // Response body matches
+        const respContent = data.response?.content?.text || "";
+        if (respContent.toLowerCase().includes(searchText.toLowerCase())) {
+            snippets.push(`Response Body: ${getMatchSnippet(respContent, searchText)}`);
+        }
+
+        return `
             <div class="search-result-item" data-index="${index}">
                 <div class="result-header">
                     <span class="method ${method}">${method}</span>
                     <span class="url">${url}</span>
                     <span class="status status-${status}">${status}</span>
                 </div>
-                <div class="result-snippet">${snippet}</div>
+                <div class="result-snippet">${snippets.join('<hr>')}</div>
             </div>
         `;
-    })
-    .join("");
+    }).join("");
 
-  resultsPanel.innerHTML = resultsList;
-  resultsPanel.style.display = matches.length ? "block" : "none";
+    resultsPanel.innerHTML = resultsList;
+    resultsPanel.style.display = matches.length ? "block" : "none";
 
-  resultsPanel.querySelectorAll(".search-result-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      loadRequestDetail(item.dataset.index);
-      hideSearchResults();
+    resultsPanel.querySelectorAll(".search-result-item").forEach((item) => {
+        item.addEventListener("click", () => {
+            loadRequestDetail(item.dataset.index);
+            hideSearchResults();
+        });
     });
-  });
 };
 
 const getMatchSnippet = (content, searchText) => {
     if (!content || !searchText) return "";
     
     const safeContent = content.toString();
-    const index = safeContent.toLowerCase().indexOf(searchText.toLowerCase());
-    if (index === -1) return "";
+    const matches = [...safeContent.matchAll(new RegExp(searchText, 'gi'))];
+    if (matches.length === 0) return "";
 
-    // Extract snippet with context
-    const snippetStart = Math.max(0, index - 50);
-    const snippetEnd = Math.min(safeContent.length, index + searchText.length + 50);
-    let snippet = safeContent.slice(snippetStart, snippetEnd);
+    // Create snippets for each match
+    const snippets = matches.map(match => {
+        const index = match.index;
+        const snippetStart = Math.max(0, index - 50);
+        const snippetEnd = Math.min(safeContent.length, index + searchText.length + 50);
+        let snippet = safeContent.slice(snippetStart, snippetEnd);
 
-    // Add ellipsis if needed
-    if (snippetStart > 0) snippet = "..." + snippet;
-    if (snippetEnd < safeContent.length) snippet = snippet + "...";
+        // Add ellipsis
+        if (snippetStart > 0) snippet = "..." + snippet;
+        if (snippetEnd < safeContent.length) snippet = snippet + "...";
 
-    // First escape HTML special characters
-    const escapedSnippet = snippet.replace(/[&<>"']/g, char => ({
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        '"': "&quot;",
-        "'": "&#39;"
-    }[char]));
+        // Escape HTML and highlight match
+        const escapedSnippet = snippet.replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        }[char]));
 
-    // Create regex pattern with escaped special characters
-    const searchPattern = searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const highlightRegex = new RegExp(`(${searchPattern})`, 'gi');
+        const searchPattern = searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const highlightRegex = new RegExp(`(${searchPattern})`, 'gi');
+        return escapedSnippet.replace(highlightRegex, '<mark>$1</mark>');
+    });
 
-    // Add highlight marks
-    return escapedSnippet.replace(highlightRegex, '<mark>$1</mark>');
+    return snippets.join('<br><br>');
 };
-
-
 
 const hideSearchResults = () => {
   const resultsPanel = document.getElementById("response-search-results");
