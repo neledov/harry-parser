@@ -53,7 +53,7 @@
 </div>
 
 <script type="module">
-    import { debounce } from '/static/js/utils/helpers.js';
+    import { debounce} from '/static/js/utils/helpers.js';
     import { handleFileUpload } from '/static/js/utils/upload.js';
     
     handleFileUpload();
@@ -63,40 +63,49 @@
     let currentSort = { field: 'name', direction: 'asc' };
 
     const sortFiles = (field) => {
-        const items = Array.from(filesList.children);
+    const items = Array.from(filesList.children);
+    
+    if (currentSort.field === field) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+        currentSort = { field, direction: 'asc' };
+    }
+    
+    items.sort((a, b) => {
+        let valueA, valueB;
         
-        if (currentSort.field === field) {
-            currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-        } else {
-            currentSort = { field, direction: 'asc' };
+        switch(field) {
+            case 'name':
+                valueA = a.querySelector('.file-name a').textContent;
+                valueB = b.querySelector('.file-name a').textContent;
+                break;
+            case 'date':
+                valueA = new Date(a.querySelector('.upload-date').textContent);
+                valueB = new Date(b.querySelector('.upload-date').textContent);
+                break;
+            case 'size':
+                // Convert to numbers for proper numerical comparison
+                valueA = Number(a.querySelector('.file-size span').dataset.bytes);
+                valueB = Number(b.querySelector('.file-size span').dataset.bytes);
+                break;
         }
         
-        items.sort((a, b) => {
-            let valueA, valueB;
-            
-            switch(field) {
-                case 'name':
-                    valueA = a.querySelector('.file-name a').textContent;
-                    valueB = b.querySelector('.file-name a').textContent;
-                    break;
-                case 'date':
-                    valueA = new Date(a.querySelector('.upload-date').textContent);
-                    valueB = new Date(b.querySelector('.upload-date').textContent);
-                    break;
-                case 'size':
-                    valueA = parseInt(a.querySelector('.file-size').dataset.bytes || 0);
-                    valueB = parseInt(b.querySelector('.file-size').dataset.bytes || 0);
-                    break;
-            }
-            
+        // Handle numerical comparison for sizes
+        if (field === 'size') {
             return currentSort.direction === 'asc' 
-                ? valueA > valueB ? 1 : -1
-                : valueA < valueB ? 1 : -1;
-        });
+                ? valueA - valueB
+                : valueB - valueA;
+        }
         
-        items.forEach(item => filesList.appendChild(item));
-        updateSortButtons(field);
-    };
+        // Handle string/date comparison for other fields
+        return currentSort.direction === 'asc' 
+            ? valueA > valueB ? 1 : -1
+            : valueA < valueB ? 1 : -1;
+    });
+    
+    items.forEach(item => filesList.appendChild(item));
+    updateSortButtons(field);
+};
 
     const updateSortButtons = (activeField) => {
         document.querySelectorAll('.sort-btn').forEach(btn => {
