@@ -62,7 +62,7 @@ a:hover {
 
 .status.success {
   color: #77DD77;
-  font-size: 0.7em;
+  font-size: 0.6em;
   font-family: 'Consolas', monospace;
   padding: 2px 4px;
   background: #333333;
@@ -71,7 +71,7 @@ a:hover {
 
 .status.redirection {
   color: #FDFD96;
-  font-size: 0.7em;
+  font-size: 0.6em;
   font-family: 'Consolas', monospace;
   padding: 2px 4px;
   background: #333333;
@@ -84,7 +84,7 @@ a:hover {
 .status.server-error,
 .status.client-error,
 .status.unknown {
-  font-size: 0.7em;
+  font-size: 0.6em;
   font-family: 'Consolas', monospace;
   padding: 2px 4px;
   background: #333333;
