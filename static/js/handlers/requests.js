@@ -333,14 +333,16 @@ const initializeFiltersModal = () => {
     const btn = document.getElementById('quick-filters-btn');
     const closeBtn = document.querySelector('.close-modal');
     
+    if (!btn || !modal || !closeBtn) return;
+    
     const updateFilterButton = () => {
         const hasActiveFilters = [
             'method-filter', 
             'status-filter', 
             'content-type-filter'
-        ].some(id => document.getElementById(id).value !== '') ||
-        document.getElementById('error-only').checked ||
-        document.getElementById('saml-only').checked;
+        ].some(id => document.getElementById(id)?.value !== '') ||
+        document.getElementById('error-only')?.checked ||
+        document.getElementById('saml-only')?.checked;
         
         btn.classList.toggle('active', hasActiveFilters);
     };
@@ -352,7 +354,6 @@ const initializeFiltersModal = () => {
         if (e.target === modal) modal.classList.remove('show');
     };
 
-    // Update button state when filters change
     document.querySelectorAll('select, input[type="checkbox"]').forEach(el => {
         el.addEventListener('change', () => {
             filterRequests();
@@ -360,6 +361,7 @@ const initializeFiltersModal = () => {
         });
     });
 };
+
 
 // Call this in your existing initialization code
 document.addEventListener('DOMContentLoaded', initializeFiltersModal);

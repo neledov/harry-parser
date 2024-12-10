@@ -265,14 +265,8 @@ input[type="submit"]:hover {
   background-color: #4A4A4A;
 }
 
-#request-list li.error-request {
-  border-left: 4px solid #FF6961;
-}
 #request-list li.saml-request {
   border-left: 4px solid #9370DB;
-}
-#request-list li.status-no-response {
-  border-left: 4px solid #FF6961;
 }
 
 .url {
@@ -570,13 +564,6 @@ input[type="submit"]:hover {
   color: #CCCCCC;
 }
 
-.diagnostics-details {
-  background: #1E1E1E;
-  padding: 15px;
-  margin-top: 10px;
-  border-radius: 4px;
-  font-family: monospace;
-}
 
 .certificate-item {
   margin-bottom: 15px;
@@ -605,10 +592,6 @@ input[type="submit"]:hover {
   border-left: 4px solid #77DD77;
 }
 
-.verification-status {
-  font-weight: bold;
-  margin-bottom: 10px;
-}
 .verification-status.success {
   color: #77DD77;
 }
@@ -630,9 +613,6 @@ input[type="submit"]:hover {
   font-size: 0.9em;
 }
 
-.weak-algorithm {
-  border-left: 4px solid #FFB347;
-}
 
 .toggle-cert-details {
   width: 100%;
@@ -1024,14 +1004,6 @@ input[type="submit"]:hover {
 /* ----------------------------------------
    15. Progress Indicators (Bars & Circular)
 ----------------------------------------- */
-.progress-container {
-  position: fixed;
-  top: 60px;
-  width: 100%;
-  height: 3px;
-  background: #2A2A2A;
-  z-index: 999;
-}
 .progress-container.hidden {
   display: none;
 }
@@ -1049,14 +1021,6 @@ input[type="submit"]:hover {
   color: #CCCCCC;
 }
 
-.upload-progress {
-  margin: 20px 0;
-  background: #2A2A2A;
-  border-radius: 4px;
-  overflow: hidden;
-  height: 20px;
-  position: relative;
-}
 .progress-details {
   position: absolute;
   top: 0;
@@ -1207,11 +1171,6 @@ input[type="submit"]:hover {
   background: #404040;
 }
 
-.sort-controls {
-  display: flex;
-  gap: 10px;
-  margin: 10px 0;
-}
 
 /* Sorting Buttons */
 .sort-btn {
@@ -1237,9 +1196,6 @@ input[type="submit"]:hover {
   transform: rotate(180deg);
 }
 
-.actions-header {
-  width: 50px;
-}
 
 .file-name, .file-date, .file-size {
   overflow: hidden;
