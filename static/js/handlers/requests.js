@@ -43,8 +43,10 @@ export const filterRequests = () => {
     };
 
     if (filters.method) {
-      matches.method =
-        item.querySelector(".method").textContent.trim() === filters.method;
+      matches.method = item.querySelector(".method")
+        .textContent
+        .trim()
+        .startsWith(filters.method);
     }
 
     if (filters.status) {
@@ -98,7 +100,6 @@ const searchInResponses = (searchText) => {
     }
 
     try {
-        // Break search into chunks to prevent UI blocking
         const chunkSize = 25;
         const entries = Object.entries(window.requestCache);
         const chunks = [];
@@ -145,7 +146,6 @@ const searchInResponses = (searchText) => {
     }
 };
 
-
 const showSearchResults = (matches, searchText) => {
     const existingPanel = document.getElementById("response-search-results");
     if (existingPanel) existingPanel.remove();
@@ -161,30 +161,25 @@ const showSearchResults = (matches, searchText) => {
 
         const snippets = [];
         
-        // URL matches
         if (url.toLowerCase().includes(searchText.toLowerCase())) {
             snippets.push(`URL: ${getMatchSnippet(url, searchText)}`);
         }
 
-        // Request headers matches
         const reqHeaders = data.request?.headers?.map(h => `${h.name}: ${h.value}`).join("\n") || "";
         if (reqHeaders.toLowerCase().includes(searchText.toLowerCase())) {
             snippets.push(`Request Headers: ${getMatchSnippet(reqHeaders, searchText)}`);
         }
 
-        // Response headers matches
         const respHeaders = data.response?.headers?.map(h => `${h.name}: ${h.value}`).join("\n") || "";
         if (respHeaders.toLowerCase().includes(searchText.toLowerCase())) {
             snippets.push(`Response Headers: ${getMatchSnippet(respHeaders, searchText)}`);
         }
 
-        // Request body matches
         const reqContent = data.request?.postData?.text || "";
         if (reqContent.toLowerCase().includes(searchText.toLowerCase())) {
             snippets.push(`Request Body: ${getMatchSnippet(reqContent, searchText)}`);
         }
 
-        // Response body matches
         const respContent = data.response?.content?.text || "";
         if (respContent.toLowerCase().includes(searchText.toLowerCase())) {
             snippets.push(`Response Body: ${getMatchSnippet(respContent, searchText)}`);
@@ -220,18 +215,15 @@ const getMatchSnippet = (content, searchText) => {
     const matches = [...safeContent.matchAll(new RegExp(searchText, 'gi'))];
     if (matches.length === 0) return "";
 
-    // Create snippets for each match
     const snippets = matches.map(match => {
         const index = match.index;
         const snippetStart = Math.max(0, index - 50);
         const snippetEnd = Math.min(safeContent.length, index + searchText.length + 50);
         let snippet = safeContent.slice(snippetStart, snippetEnd);
 
-        // Add ellipsis
         if (snippetStart > 0) snippet = "..." + snippet;
         if (snippetEnd < safeContent.length) snippet = snippet + "...";
 
-        // Escape HTML and highlight match
         const escapedSnippet = snippet.replace(/[&<>"']/g, char => ({
             "&": "&amp;",
             "<": "&lt;",
