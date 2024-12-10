@@ -428,7 +428,7 @@ export const generateRequestListItem = (entry) => {
     
     const versionNumber = parseFloat(httpVersion.replace(/[^0-9.]/g, ''));
     const versionClass = versionNumber >= 2.0 ? 'higher-version' : 
-                        versionNumber <= 1.0 ? 'lower-version' : '';
+                        versionNumber <= 1.1 ? 'lower-version' : '';
     
     const statusCategory = 
         status >= 200 && status < 300 ? 'success' :
