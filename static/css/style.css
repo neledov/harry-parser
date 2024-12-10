@@ -1287,3 +1287,19 @@ input[type="submit"]:hover {
   white-space: nowrap;
   text-align: left;
 }
+
+.http-version {
+  font-size: 0.8em;
+  color: #888888;
+  margin-left: 5px;
+  padding: 2px 4px;
+  background: #333333;
+  border-radius: 3px;
+  font-family: 'Consolas', monospace;
+}
+
+.method {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}

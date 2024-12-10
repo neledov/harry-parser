@@ -338,20 +338,21 @@ export const generateRequestListItem = (entry) => {
     const responseSize = entry.response?.content?.size || 0;
     const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
     
+    // Extract HTTP version from headers
+    const httpVersion = entry.request.httpVersion || 
+                       entry.request.headers.find(h => h.name.toLowerCase() === 'x-ap-version')?.value ||
+                       'http/1.1';
+    
     const statusCategory = 
         status >= 200 && status < 300 ? 'success' :
         status >= 300 && status < 400 ? 'redirection' :
         status >= 400 && status < 500 ? 'client-error' :
         status >= 500 ? 'server-error' : 'unknown';
 
-    const isSaml = url.toLowerCase().includes('saml') || 
-                  url.toLowerCase().includes('sso') ||
-                  entry.request.postData?.text?.toLowerCase().includes('saml');
-
     return `
         <div class="method ${methodClass}">
             ${method}
-            ${isSaml ? '<i class="fas fa-shield-alt saml-icon" title="SAML Request"></i>' : ''}
+            <span class="http-version">${httpVersion}</span>
         </div>
         <div class="url" title="${url}">${url}</div>
         <div class="request-info">
@@ -360,4 +361,5 @@ export const generateRequestListItem = (entry) => {
         </div>
     `;
 };
+
 
