@@ -1150,10 +1150,14 @@ input[type="submit"]:hover {
   gap: 10px;
 }
 
+
 .size {
   color: #888888;
-  font-size: 0.9em;
+  font-size: 0.5em;
   font-family: 'Consolas', monospace;
+  padding: 2px 4px;
+  background: #333333;
+  border-radius: 3px;
 }
 
 .clear-cache-btn {
