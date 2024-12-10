@@ -391,13 +391,44 @@ export const generateRequestListItem = (entry) => {
     const responseSize = entry.response?.content?.size || 0;
     const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
     
-    const httpVersion = entry.request.httpVersion || 
-                       entry.request.headers.find(h => h.name.toLowerCase() === 'x-ap-version')?.value ||
-                       'http/1.1';
+    // More precise version detection from HAR entry
+    let httpVersion = 'HTTP/1.1'; // Default fallback
     
-    const isHigherVersion = httpVersion.includes('2.0') || httpVersion.includes('3.0');
-    const isLowerVersion = httpVersion.includes('1.0') || httpVersion.includes('1.1')
-    const versionClass = isHigherVersion ? 'higher-version' : isLowerVersion ? 'lower-version' : '';
+    // Check protocol version from HAR entry
+    if (entry.request.httpVersion) {
+        httpVersion = entry.request.httpVersion.toUpperCase();
+    }
+    
+    // Check custom headers for protocol version
+    const protocolHeaders = [
+        'x-ap-version',
+        'x-http-version',
+        'x-protocol-version',
+        'x-forwarded-proto-version',
+        'alpn',
+        'x-firefox-spdy',
+        'x-spdy-version'
+    ];
+    
+    for (const header of entry.request.headers) {
+        const headerName = header.name.toLowerCase();
+        if (protocolHeaders.includes(headerName)) {
+            // Handle SPDY and QUIC protocols
+            if (header.value.includes('spdy') || header.value.includes('quic')) {
+                httpVersion = 'HTTP/2.0';
+                break;
+            }
+            // Handle explicit version numbers
+            if (header.value.includes('2') || header.value.includes('3')) {
+                httpVersion = `HTTP/${header.value.includes('3') ? '3.0' : '2.0'}`;
+                break;
+            }
+        }
+    }
+    
+    const versionNumber = parseFloat(httpVersion.replace(/[^0-9.]/g, ''));
+    const versionClass = versionNumber >= 2.0 ? 'higher-version' : 
+                        versionNumber <= 1.0 ? 'lower-version' : '';
     
     const statusCategory = 
         status >= 200 && status < 300 ? 'success' :
@@ -417,4 +448,5 @@ export const generateRequestListItem = (entry) => {
         </div>
     `;
 };
+
 
