@@ -153,15 +153,16 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
           request.postData && request.postData.text
             ? `
             <div class="section">
-                <h3>Post Data</h3>
-                <pre><code class="${languageClass}">${escapeHTML(
-                formatJSON(request.postData.text)
-              )}</code></pre>
-                <button class="copy-button" data-text="${encodeURIComponent(
+                            <button class="copy-button" data-text="${encodeURIComponent(
                   request.postData.text
                 )}" aria-label="Copy Post Data">
                     <i class="fas fa-copy"></i> Copy
                 </button>
+                <h3>Post Data</h3>
+                <pre><code class="${languageClass}">${escapeHTML(
+                formatJSON(request.postData.text)
+              )}</code></pre>
+
             </div>
         `
             : ""
