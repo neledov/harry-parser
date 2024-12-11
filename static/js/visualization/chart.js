@@ -1,4 +1,5 @@
 const PHASE_COLORS = {
+    "Blocked": "#FF6961",     // Adding blocked time with red shade
     "DNS Lookup": "#77DD77",     
     "TCP Connection": "#9370DB",  
     "TLS Handshake": "#CCCCCC",  
@@ -9,6 +10,7 @@ const PHASE_COLORS = {
 
 export const createTimelineChart = (canvas, timings) => {
     const phases = {
+        blocked: "Blocked",
         dns: "DNS Lookup",
         connect: "TCP Connection",
         ssl: "TLS Handshake",
@@ -16,6 +18,7 @@ export const createTimelineChart = (canvas, timings) => {
         wait: "Waiting (TTFB)",
         receive: "Content Download"
     };
+    
 
     const datasets = Object.entries(phases)
         .filter(([key]) => timings[key] > 0)
