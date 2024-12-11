@@ -174,15 +174,16 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
           response.content && response.content.text
             ? `
             <div class="section">
-                <h3>Response Content</h3>
-                <pre><code class="${languageClass}">${escapeHTML(
-                formatJSON(response.content.text)
-              )}</code></pre>
-                <button class="copy-button" data-text="${encodeURIComponent(
+                            <button class="copy-button" data-text="${encodeURIComponent(
                   response.content.text
                 )}" aria-label="Copy Response Content">
                     <i class="fas fa-copy"></i> Copy
                 </button>
+                <h3>Response Content</h3>
+                <pre><code class="${languageClass}">${escapeHTML(
+                formatJSON(response.content.text)
+              )}</code></pre>
+
             </div>
         `
             : '<div class="section"><p>No response content available.</p></div>'
