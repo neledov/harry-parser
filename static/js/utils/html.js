@@ -440,6 +440,8 @@ export const generateRequestListItem = (entry) => {
         status >= 400 && status < 500 ? 'client-error' :
         status >= 500 ? 'server-error' : 'unknown';
 
+    const duration = Object.values(entry.timings).reduce((sum, time) => sum + (time > 0 ? time : 0), 0);
+
     return `
         <div class="method ${methodClass}">
             ${method}
@@ -450,6 +452,7 @@ export const generateRequestListItem = (entry) => {
             <span class="status ${statusCategory}">Status: ${status}</span>
             <span class="size">${(responseSize/1024).toFixed(1)} KB</span>
             <span class="bandwidth">${bandwidth}</span>
+            <span class="duration">${Math.round(duration)} ms</span>
         </div>
     `;
 };

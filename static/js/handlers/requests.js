@@ -23,68 +23,75 @@ export const loadRequestDetail = async (index) => {
 
 export const filterRequests = () => {
   const filters = {
-    method: document.getElementById("method-filter").value,
-    status: document.getElementById("status-filter").value,
-    contentType: document.getElementById("content-type-filter").value,
-    errorOnly: document.getElementById("error-only").checked,
-    samlOnly: document.getElementById("saml-only").checked,
+      method: document.getElementById("method-filter").value,
+      status: document.getElementById("status-filter").value,
+      contentType: document.getElementById("content-type-filter").value,
+      errorOnly: document.getElementById("error-only").checked,
+      samlOnly: document.getElementById("saml-only").checked
   };
 
+  const requestList = document.getElementById("request-list");
+  const items = Array.from(requestList.getElementsByTagName("li"));
   let anyVisible = false;
-  document.querySelectorAll("#request-list li").forEach((item) => {
-    if (!item.dataset.index) return;
 
-    const matches = {
-      method: true,
-      status: true,
-      contentType: true,
-      error: true,
-      saml: !filters.samlOnly || item.classList.contains("saml-request"),
-    };
+  items.forEach((item) => {
+      if (!item.dataset.index) return;
 
-    if (filters.method) {
-      matches.method = item.querySelector(".method")
-        .textContent
-        .trim()
-        .startsWith(filters.method);
-    }
+      const requestData = window.requestCache[item.dataset.index];
+      const duration = calculateDuration(requestData?.timings || {});
+      const hasError = requestData?.response?.status >= 400 || !requestData?.response?.status;
+      const isSlow = duration > 2000;
 
-    if (filters.status) {
-      const statusCode = item.dataset.statusCode;
-      matches.status = statusCode && statusCode.startsWith(filters.status);
-    }
+      const matches = {
+          method: !filters.method || item.querySelector(".method").textContent.trim().startsWith(filters.method),
+          status: !filters.status || (item.dataset.statusCode && item.dataset.statusCode.startsWith(filters.status)),
+          contentType: !filters.contentType || (item.dataset.contentType && item.dataset.contentType.toLowerCase().includes(filters.contentType.toLowerCase())),
+          error: !filters.errorOnly || (hasError || isSlow),
+          saml: !filters.samlOnly || item.classList.contains("saml-request")
+      };
 
-    if (filters.contentType) {
-      matches.contentType =
-        item.dataset.contentType &&
-        item.dataset.contentType
-          .toLowerCase()
-          .includes(filters.contentType.toLowerCase());
-    }
+      const isVisible = Object.values(matches).every(Boolean);
+      item.style.display = isVisible ? "" : "none";
+      if (isVisible) anyVisible = true;
 
-    if (filters.errorOnly) {
-        const requestData = window.requestCache[item.dataset.index];
-        matches.error = isSuspiciousRequest(requestData.response, requestData.timings);
-    }
-
-    const isVisible = Object.values(matches).every(Boolean);
-    item.style.display = isVisible ? "" : "none";
-    if (isVisible) anyVisible = true;
+      item.dataset.duration = duration;
+      item.dataset.hasIssue = (hasError || isSlow) ? "1" : "0";
   });
 
+  if (filters.errorOnly) {
+      const visibleItems = items.filter(item => item.style.display !== "none");
+      visibleItems.sort((a, b) => {
+          const issueA = a.dataset.hasIssue === "1";
+          const issueB = b.dataset.hasIssue === "1";
+          if (issueA !== issueB) return issueB - issueA;
+          return parseFloat(b.dataset.duration) - parseFloat(a.dataset.duration);
+      });
+      visibleItems.forEach(item => requestList.appendChild(item));
+  }
+
+  updateNoResultsMessage(anyVisible);
+};
+
+const updateNoResultsMessage = (anyVisible) => {
   const noResults = document.getElementById("no-results");
   if (!anyVisible) {
-    if (!noResults) {
-      const message = document.createElement("li");
-      message.id = "no-results";
-      message.textContent = "No results found.";
-      message.style.color = "#ff5555";
-      document.getElementById("request-list").appendChild(message);
-    }
+      if (!noResults) {
+          const message = document.createElement("li");
+          message.id = "no-results";
+          message.textContent = "No results found.";
+          message.style.color = "#ff5555";
+          document.getElementById("request-list").appendChild(message);
+      }
   } else if (noResults) {
-    noResults.remove();
+      noResults.remove();
   }
 };
+
+
+const calculateDuration = (timings) => {
+  return Object.values(timings).reduce((sum, time) => sum + (time > 0 ? time : 0), 0);
+};
+
 
 const searchInResponses = (searchText) => {
     if (!window.requestCache || !searchText) {
