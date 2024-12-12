@@ -114,7 +114,7 @@ export class HARSocketClient {
         const reason = getBlockedReason(timings, isAtLimit);
 
         return {
-            concurrent: totalActive,
+            concurrent: Math.max(1,totalActive),
             queued: queuedTime,
             blocked: blockedTime - queuedTime,
             atLimit: isAtLimit,
