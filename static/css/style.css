@@ -1357,10 +1357,12 @@ input[type="submit"]:hover {
 }
 
 .stat {
-  background: #2A2A2A;
+  background: #333333;
+  color: #888888;
   padding: 10px;
   border-radius: 4px;
   display: flex;
+  font-size: 0.6em;
   justify-content: space-between;
   align-items: center;
 }

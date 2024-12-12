@@ -391,7 +391,8 @@ export const generateRequestListItem = (entry) => {
     const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
     const downloadTime = entry.timings.receive;
     const bandwidth = calculateBandwidth(entry);
-    
+    const concurrent = entry.connectionInfo?.concurrent || 0;
+    const concurrentClass = concurrent >= 6 ? 'warning' : '';
     // More precise version detection from HAR entry
     let httpVersion = 'HTTP/1.1'; // Default fallback
     
@@ -450,6 +451,9 @@ export const generateRequestListItem = (entry) => {
             <span class="size">${(responseSize/1024).toFixed(1)} KB</span>
             <span class="bandwidth">${bandwidth}</span>
             <span class="duration">${Math.round(duration)} ms</span>
+                        <span class="stat ${concurrentClass}" title="Concurrent Connections">
+                <i class="fas fa-network-wired"></i> ${concurrent}
+            </span>
         </div>
     `;
 };

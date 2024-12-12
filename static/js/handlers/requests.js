@@ -41,12 +41,13 @@ export const filterRequests = () => {
       const duration = calculateDuration(requestData?.timings || {});
       const hasError = requestData?.response?.status >= 400 || !requestData?.response?.status;
       const isSlow = duration > 2000;
+      const hasConnectionIssue = requestData?.connectionInfo?.concurrent >= 6;
 
       const matches = {
           method: !filters.method || item.querySelector(".method").textContent.trim().startsWith(filters.method),
           status: !filters.status || (item.dataset.statusCode && item.dataset.statusCode.startsWith(filters.status)),
           contentType: !filters.contentType || (item.dataset.contentType && item.dataset.contentType.toLowerCase().includes(filters.contentType.toLowerCase())),
-          error: !filters.errorOnly || (hasError || isSlow),
+          error: !filters.errorOnly || (hasError || isSlow || hasConnectionIssue),
           saml: !filters.samlOnly || item.classList.contains("saml-request")
       };
 
