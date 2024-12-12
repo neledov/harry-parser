@@ -112,9 +112,6 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
           <div class="stat ${connectionInfo.concurrent >= 6 ? 'warning' : ''}">
               <span>Active Connections:</span>
               <span class="value">${connectionInfo.concurrent}</span>
-              ${connectionInfo.concurrent >= 6 ? 
-                  '<div class="warning-note">Connection pool limit reached</div>' : 
-                  ''}
           </div>
           <div class="stat timing">
               <span>Total Time:</span>
