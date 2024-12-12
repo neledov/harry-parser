@@ -1,0 +1,49 @@
+{% macro render_request_item(index, entry) %}
+    {% set has_response = entry.response and entry.response.status %}
+    {% set status_code = entry.response.status if has_response else 'No Status' %}
+    {% set content_type = entry.response.content.mimeType if has_response and entry.response.content.mimeType else 'Unknown' %}
+    {% set method = entry.request.method %}
+    {% set method_class = method if method in ['GET', 'POST', 'PUT', 'DELETE'] else 'OTHER' %}
+    {% set response_size = entry.response.content.size if has_response and entry.response.content.size else 0 %}
+    {% set status_category = (
+        'success' if status_code|int >= 200 and status_code|int < 300 else
+        'redirection' if status_code|int >= 300 and status_code|int < 400 else
+        'client-error' if status_code|int >= 400 and status_code|int < 500 else
+        'server-error' if status_code|int >= 500 else
+        'unknown error'
+    ) %}
+    {% set is_saml = 'saml' in entry.request.url|lower or 'sso' in entry.request.url|lower or
+                     'saml' in (entry.request.postData.text|lower if entry.request.postData else '') %}
+    <li data-index="{{ index }}" 
+        data-status-code="{{ status_code }}"
+        data-content-type="{{ content_type }}"
+        class="
+            {% if status_code == 'No Status' %}
+                error-request
+            {% endif %}
+            {% if has_response %}
+                status-{{ entry.response.status }}
+                {% if entry.response.status|int >= 400 %}
+                    error-request
+                {% endif %}
+            {% endif %}
+            {% if is_saml %}
+                saml-request
+            {% endif %}
+        " 
+        tabindex="0"
+        role="button"
+        aria-pressed="false">
+        <div class="method {{ method_class }}">
+            {{ method }}
+            {% if is_saml %}
+                <i class="fas fa-shield-alt saml-icon" title="SAML Request"></i>
+            {% endif %}
+        </div>
+        <div class="url" title="{{ entry.request.url }}">{{ entry.request.url }}</div>
+        <div class="request-info">
+            <span class="status {{ status_category }}">Status: {{ status_code }}</span>
+            <span class="size" data-bytes="{{ response_size }}">{{ (response_size/1024).toFixed(1) }} KB</span>
+        </div>
+    </li>
+{% endmacro %}
