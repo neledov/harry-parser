@@ -3,6 +3,7 @@
 ----------------------------------------- */
 body {
   font-family: 'Consolas', monospace;
+  line-height: 1.4;
   background-color: #1A1A1A;
   color: #CCCCCC;
   margin: 0;
@@ -33,7 +34,7 @@ body {
    2. Typography & Base Elements
 ----------------------------------------- */
 input, select, button {
-  font-family: 'Consolas', monospace;
+  font-family: inherit;
   background-color: #2A2A2A;
   color: #CCCCCC;
   border: 1px solid #333333;
@@ -60,27 +61,13 @@ a:hover {
   font-weight: bold;
 }
 
-.status.success {
-  color: #77DD77;
-  font-size: 0.6em;
-  font-family: 'Consolas', monospace;
-  padding: 2px 4px;
-  background: #333333;
-  border-radius: 3px;
-}
-
-.status.redirection {
-  color: #FDFD96;
-  font-size: 0.6em;
-  font-family: 'Consolas', monospace;
-  padding: 2px 4px;
-  background: #333333;
-  border-radius: 3px;
-}
+/* Consolidate status styles */
 .status {
   font-size: 0.9em;
   color: #CCCCCC;
 }
+.status.success,
+.status.redirection,
 .status.server-error,
 .status.client-error,
 .status.unknown {
@@ -89,6 +76,16 @@ a:hover {
   padding: 2px 4px;
   background: #333333;
   border-radius: 3px;
+}
+.status.success {
+  color: #77DD77;
+}
+.status.redirection {
+  color: #FDFD96;
+}
+.status.server-error,
+.status.client-error,
+.status.unknown {
   color: #FF6961;
 }
 
@@ -178,19 +175,13 @@ form {
 
 input[type="file"] {
   padding: 10px;
-  background-color: #2A2A2A;
-  color: #CCCCCC;
-  border: 1px solid #333333;
-  border-radius: 4px;
   margin-right: 10px;
 }
 
 input[type="submit"] {
   padding: 10px 20px;
   background-color: #333333;
-  color: #CCCCCC;
   border: none;
-  border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
@@ -203,15 +194,10 @@ input[type="submit"]:hover {
   margin-top: 150px;
 }
 
-#processing-message {
-  font-size: 1em;
-  font-weight: bold;
-  color: #CCCCCC;
-  width: 100%;
-}
-
+#processing-message,
 #wizard-message {
   font-size: 1em;
+  font-weight: bold;
   color: #CCCCCC;
   width: 100%;
 }
@@ -298,7 +284,6 @@ input[type="submit"]:hover {
   text-overflow: ellipsis;
   max-width: 100%;
   font-size: 0.8em;
-  font-family: 'Consolas', monospace;
   line-height: 1.2;
 }
 
@@ -427,7 +412,6 @@ input[type="submit"]:hover {
   padding: 15px;
   margin-bottom: 20px;
   font-size: 0.8em;
-  font-family: 'Consolas', monospace;
   line-height: 1.2;
 }
 
@@ -436,7 +420,6 @@ input[type="submit"]:hover {
   padding-bottom: 5px;
   margin-bottom: 15px;
 }
-
 
 
 /* ----------------------------------------
@@ -573,7 +556,6 @@ input[type="submit"]:hover {
   color: #CCCCCC;
 }
 
-
 .certificate-item {
   margin-bottom: 15px;
 }
@@ -622,7 +604,6 @@ input[type="submit"]:hover {
   font-size: 0.9em;
 }
 
-
 .toggle-cert-details {
   width: 100%;
   text-align: left;
@@ -666,7 +647,6 @@ input[type="submit"]:hover {
 .saml-raw {
   margin: 20px 0;
   font-size: 0.8em;
-  font-family: 'Consolas', monospace;
   line-height: 1.2;
 }
 .saml-raw .copy-button {
@@ -775,9 +755,6 @@ input[type="submit"]:hover {
   margin-right: 20px;
 }
 
-.files-list a {
-  color: #CCCCCC;
-}
 .files-list a:hover {
   color: #CCCCCC;
 }
@@ -904,7 +881,7 @@ input[type="submit"]:hover {
 .search-container {
   position: relative;
   display: flex;
-  align-items: center; /* corrected from 'left' */
+  align-items: center;
   gap: 10px;
   padding: 5px;
 }
@@ -1116,15 +1093,9 @@ input[type="submit"]:hover {
 }
 
 @keyframes float {
-  0% {
-    transform: translate(-20%, 0);
-  }
-  50% {
-    transform: translate(-20%, -15px);
-  }
-  100% {
-    transform: translate(-20%, 0);
-  }
+  0% { transform: translate(-20%, 0); }
+  50% { transform: translate(-20%, -15px); }
+  100% { transform: translate(-20%, 0); }
 }
 
 
@@ -1133,7 +1104,7 @@ input[type="submit"]:hover {
 ----------------------------------------- */
 @media screen and (max-width: 768px) {
   .chart-container {
-      height: 150px;
+    height: 150px;
   }
 }
 
@@ -1159,14 +1130,13 @@ input[type="submit"]:hover {
   gap: 10px;
 }
 
-
 .size {
   color: #888888;
   font-size: 0.5em;
-  font-family: 'Consolas', monospace;
-  padding: 2px 4px;
   background: #333333;
   border-radius: 3px;
+  padding: 2px 4px;
+  font-family: 'Consolas', monospace;
 }
 
 .clear-cache-btn {
@@ -1245,7 +1215,7 @@ input[type="submit"]:hover {
   border-radius: 3px;
 }
 
-/* Method (moved from top, combined styles) */
+/* Method */
 .method {
   display: flex;
   align-items: center;
@@ -1324,29 +1294,28 @@ input[type="submit"]:hover {
 
 .duration {
   color: #888888;
-  font-size: 0.5em;
-  font-family: 'Consolas', monospace;
-  padding: 2px 4px;
+  font-size: 0.6em;
   background: #333333;
   border-radius: 3px;
+  padding: 2px 4px;
+  font-family: 'Consolas', monospace;
 }
 
 .connection-info {
   margin-top: 20px;
-  font-size: 0.6em;
+  font-size: 0.8em;
 }
 
 .connection-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  font-size: 0.6em;
   gap: 15px;
 }
 
 .stat {
   background: #333333;
   color: #888888;
-  padding: 10px;
+  padding: 2px;
   border-radius: 4px;
   display: flex;
   font-size: 0.6em;
@@ -1355,12 +1324,10 @@ input[type="submit"]:hover {
 }
 
 .stat.blocked {
-  font-size: 0.6em;
   border-left: 4px solid #FF6961;
 }
 
 .stat.warning {
-  font-size: 0.6em;
   color: #FFB347;
 }
 
@@ -1370,12 +1337,12 @@ input[type="submit"]:hover {
   padding: 10px;
   border-radius: 4px;
   display: flex;
-  font-size: 0.6em;
+  font-size: 0.8em;
   justify-content: space-between;
   align-items: center;
 }
 
-/* Add to section 9. Sections & Common Modules */
+/* Timing analysis section */
 .timing-analysis {
   background-color: #242424;
   border: 1px solid #3A3A3A;
@@ -1384,13 +1351,12 @@ input[type="submit"]:hover {
   margin-bottom: 20px;
 }
 
-
 .connection-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 15px;
   margin-bottom: 20px;
+  font-size: large;
 }
+
 .timing-explanation {
   padding: 10px;
   background: #333333;
