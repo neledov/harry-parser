@@ -1,21 +1,19 @@
-import { escapeHTML, formatJSON,calculateBandwidth } from "./helpers.js";
+import { escapeHTML, formatJSON, calculateBandwidth } from "./helpers.js";
 import { decodeSamlMessage, parseSamlXml } from "./saml.js";
 import { analyzeSamlSecurity } from "./saml-analyzer.js";
 import { analyzeRequestTiming } from "./timing-analyzer.js";
 
 const getTimingIcon = (type) => {
   const icons = {
-      connection_limit: 'fa-layer-group',
-      dns: 'fa-globe',
-      ssl: 'fa-lock',
-      connect: 'fa-plug',
-      ttfb: 'fa-server',
-      blocked: 'fa-clock'
+    connection_limit: "fa-layer-group",
+    dns: "fa-globe",
+    ssl: "fa-lock",
+    connect: "fa-plug",
+    ttfb: "fa-server",
+    blocked: "fa-clock",
   };
-  return icons[type] || 'fa-circle';
+  return icons[type] || "fa-circle";
 };
-
-
 
 const renderTimestampValidation = (timestamps) => {
   if (timestamps.status === "missing") {
@@ -85,38 +83,80 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
   const { request, response, connectionInfo, timings } = data;
   const timingAnalysis = analyzeRequestTiming(data);
 
-  const queryParamsHtml = request.queryString?.length > 0
-    ? request.queryString.map(q => 
-        `<li><strong>${escapeHTML(q.name)}:</strong> ${escapeHTML(q.value)}</li>`
-      ).join("")
-    : "<li>No query parameters</li>";
+  const queryParamsHtml =
+    request.queryString?.length > 0
+      ? request.queryString
+          .map(
+            (q) =>
+              `<li><strong>${escapeHTML(q.name)}:</strong> ${escapeHTML(
+                q.value
+              )}</li>`
+          )
+          .join("")
+      : "<li>No query parameters</li>";
 
-  const requestHeadersHtml = request.headers?.length > 0
-    ? request.headers.map(h => 
-        `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(h.value)}</li>`
-      ).join("")
-    : "<li>No request headers</li>";
+  const requestHeadersHtml =
+    request.headers?.length > 0
+      ? request.headers
+          .map(
+            (h) =>
+              `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(
+                h.value
+              )}</li>`
+          )
+          .join("")
+      : "<li>No request headers</li>";
 
-  const responseHeadersHtml = response.headers?.length > 0
-    ? response.headers.map(h => 
-        `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(h.value)}</li>`
-      ).join("")
-    : "<li>No response headers</li>";
+  const responseHeadersHtml =
+    response.headers?.length > 0
+      ? response.headers
+          .map(
+            (h) =>
+              `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(
+                h.value
+              )}</li>`
+          )
+          .join("")
+      : "<li>No response headers</li>";
 
   const samlSectionHtml = data.isSaml ? generateSamlSection(data) : "";
 
   const connectionInfoHtml = `
   <div class="section connection-info">
+  <button class="copy-button" data-text="${encodeURIComponent(`
+Connection Analysis:
+${timingAnalysis.explanation}
+
+Timing Details:
+${timingAnalysis.delays
+  .map(
+    (delay) =>
+      `${delay.type.replace(/_/g, " ").toUpperCase()}: ${delay.duration}ms - ${
+        delay.message
+      }`
+  )
+  .join("\n")}
+
+Active Connections: ${connectionInfo.concurrent}
+Total Time: ${Object.values(timings).reduce(
+    (sum, time) => sum + (time > 0 ? time : 0),
+    0
+  )}ms
+        `)}" aria-label="Copy Connection Analysis">
+            <i class="fas fa-copy"></i> Copy
+        </button>
       <h3>Connection Analysis</h3>
       <div class="connection-stats">
-          <div class="stat ${connectionInfo.concurrent >= 6 ? 'warning' : ''}">
+          <div class="stat ${connectionInfo.concurrent >= 6 ? "warning" : ""}">
               <span>Active Connections:</span>
               <span class="value">${connectionInfo.concurrent}</span>
           </div>
           <div class="stat timing">
               <span>Total Time:</span>
-              <span class="value">${Object.values(timings).reduce((sum, time) => 
-                  sum + (time > 0 ? time : 0), 0)}ms</span>
+              <span class="value">${Object.values(timings).reduce(
+                (sum, time) => sum + (time > 0 ? time : 0),
+                0
+              )}ms</span>
           </div>
       </div>
       
@@ -125,19 +165,22 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
       </div>
       
       <div class="timing-details">
-          ${timingAnalysis.delays.map(delay => `
+          ${timingAnalysis.delays
+            .map(
+              (delay) => `
               <div class="timing-detail ${delay.type}">
                   <span class="timing-label">
                       <i class="fas ${getTimingIcon(delay.type)}"></i>
-                      ${delay.type.replace(/_/g, ' ').toUpperCase()}
+                      ${delay.type.replace(/_/g, " ").toUpperCase()}
                   </span>
                   <span class="timing-duration">${delay.duration}ms</span>
               </div>
-          `).join('')}
+          `
+            )
+            .join("")}
       </div>
   </div>
 `;
-
 
   return `
         <div class="section">
@@ -148,15 +191,21 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
         ${connectionInfoHtml}
         ${samlSectionHtml}
         <div class="section">
-            <button class="copy-button curl-button" data-text="${encodeURIComponent(curlCommand)}" 
+            <button class="copy-button curl-button" data-text="${encodeURIComponent(
+              curlCommand
+            )}" 
                     aria-label="Copy cURL Command">
                 <i class="fas fa-copy"></i> Copy cURL
             </button>
-            <pre><code class="language-bash">${escapeHTML(curlCommand)}</code></pre>
+            <pre><code class="language-bash">${escapeHTML(
+              curlCommand
+            )}</code></pre>
         </div>
         <div class="section">
             <h3>Request Details</h3>
-            <p><strong>Method:</strong> ${escapeHTML(request.method || "N/A")}</p>
+            <p><strong>Method:</strong> ${escapeHTML(
+              request.method || "N/A"
+            )}</p>
             <p><strong>URL:</strong> 
                 <a href="${escapeHTML(request.url || "#")}" 
                    target="_blank" rel="noopener noreferrer">
@@ -177,34 +226,48 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
             <h3>Query Parameters</h3>
             <ul>${queryParamsHtml}</ul>
         </div>
-        ${request.postData && request.postData.text ? `
+        ${
+          request.postData && request.postData.text
+            ? `
             <div class="section">
-                <button class="copy-button" data-text="${encodeURIComponent(request.postData.text)}" 
+                <button class="copy-button" data-text="${encodeURIComponent(
+                  request.postData.text
+                )}" 
                         aria-label="Copy Post Data">
                     <i class="fas fa-copy"></i> Copy
                 </button>
                 <h3>Post Data</h3>
-                <pre><code class="${languageClass}">${escapeHTML(formatJSON(request.postData.text))}</code></pre>
+                <pre><code class="${languageClass}">${escapeHTML(
+                formatJSON(request.postData.text)
+              )}</code></pre>
             </div>
-        ` : ""}
+        `
+            : ""
+        }
         <div class="section">
             <h3>Response Headers</h3>
             <ul>${responseHeadersHtml}</ul>
         </div>
-        ${response.content && response.content.text ? `
+        ${
+          response.content && response.content.text
+            ? `
             <div class="section">
-                <button class="copy-button" data-text="${encodeURIComponent(response.content.text)}" 
+                <button class="copy-button" data-text="${encodeURIComponent(
+                  response.content.text
+                )}" 
                         aria-label="Copy Response Content">
                     <i class="fas fa-copy"></i> Copy
                 </button>
                 <h3>Response Content</h3>
-                <pre><code class="${languageClass}">${escapeHTML(formatJSON(response.content.text))}</code></pre>
+                <pre><code class="${languageClass}">${escapeHTML(
+                formatJSON(response.content.text)
+              )}</code></pre>
             </div>
-        ` : '<div class="section"><p>No response content available.</p></div>'}
+        `
+            : '<div class="section"><p>No response content available.</p></div>'
+        }
     `;
 };
-
-
 
 export const generateSamlSection = (data) => {
   if (!data.isSaml) return "";
@@ -400,64 +463,78 @@ ${
 
 // Add this export along with the existing exports
 export const generateRequestListItem = (entry) => {
-    const method = entry.request.method;
-    const url = entry.request.url;
-    const status = entry.response?.status || 'No Status';
-    const contentType = entry.response?.content?.mimeType || 'Unknown';
-    const responseSize = entry.response?.content?.size || 0;
-    const methodClass = ['GET', 'POST', 'PUT', 'DELETE'].includes(method) ? method : 'OTHER';
-    const downloadTime = entry.timings.receive;
-    const bandwidth = calculateBandwidth(entry);
-    const concurrent = entry.connectionInfo?.concurrent || 0;
-    const concurrentClass = concurrent >= 6 ? 'warning' : '';
-    // More precise version detection from HAR entry
-    let httpVersion = 'HTTP/1.1'; // Default fallback
-    
-    // Check protocol version from HAR entry
-    if (entry.request.httpVersion) {
-        httpVersion = entry.request.httpVersion.toUpperCase();
-    }
-    
-    // Check custom headers for protocol version
-    const protocolHeaders = [
-        'x-ap-version',
-        'x-http-version',
-        'x-protocol-version',
-        'x-forwarded-proto-version',
-        'alpn',
-        'x-firefox-spdy',
-        'x-spdy-version'
-    ];
-    
-    for (const header of entry.request.headers) {
-        const headerName = header.name.toLowerCase();
-        if (protocolHeaders.includes(headerName)) {
-            // Handle SPDY and QUIC protocols
-            if (header.value.includes('spdy') || header.value.includes('quic')) {
-                httpVersion = 'HTTP/2.0';
-                break;
-            }
-            // Handle explicit version numbers
-            if (header.value.includes('2') || header.value.includes('3')) {
-                httpVersion = `HTTP/${header.value.includes('3') ? '3.0' : '2.0'}`;
-                break;
-            }
-        }
-    }
-    
-    const versionNumber = parseFloat(httpVersion.replace(/[^0-9.]/g, ''));
-    const versionClass = versionNumber >= 2.0 ? 'higher-version' : 
-                        versionNumber <= 1.1 ? 'lower-version' : '';
-    
-    const statusCategory = 
-        status >= 200 && status < 300 ? 'success' :
-        status >= 300 && status < 400 ? 'redirection' :
-        status >= 400 && status < 500 ? 'client-error' :
-        status >= 500 ? 'server-error' : 'unknown';
+  const method = entry.request.method;
+  const url = entry.request.url;
+  const status = entry.response?.status || "No Status";
+  const contentType = entry.response?.content?.mimeType || "Unknown";
+  const responseSize = entry.response?.content?.size || 0;
+  const methodClass = ["GET", "POST", "PUT", "DELETE"].includes(method)
+    ? method
+    : "OTHER";
+  const downloadTime = entry.timings.receive;
+  const bandwidth = calculateBandwidth(entry);
+  const concurrent = entry.connectionInfo?.concurrent || 0;
+  const concurrentClass = concurrent >= 6 ? "warning" : "";
+  // More precise version detection from HAR entry
+  let httpVersion = "HTTP/1.1"; // Default fallback
 
-    const duration = Object.values(entry.timings).reduce((sum, time) => sum + (time > 0 ? time : 0), 0);
+  // Check protocol version from HAR entry
+  if (entry.request.httpVersion) {
+    httpVersion = entry.request.httpVersion.toUpperCase();
+  }
 
-    return `
+  // Check custom headers for protocol version
+  const protocolHeaders = [
+    "x-ap-version",
+    "x-http-version",
+    "x-protocol-version",
+    "x-forwarded-proto-version",
+    "alpn",
+    "x-firefox-spdy",
+    "x-spdy-version",
+  ];
+
+  for (const header of entry.request.headers) {
+    const headerName = header.name.toLowerCase();
+    if (protocolHeaders.includes(headerName)) {
+      // Handle SPDY and QUIC protocols
+      if (header.value.includes("spdy") || header.value.includes("quic")) {
+        httpVersion = "HTTP/2.0";
+        break;
+      }
+      // Handle explicit version numbers
+      if (header.value.includes("2") || header.value.includes("3")) {
+        httpVersion = `HTTP/${header.value.includes("3") ? "3.0" : "2.0"}`;
+        break;
+      }
+    }
+  }
+
+  const versionNumber = parseFloat(httpVersion.replace(/[^0-9.]/g, ""));
+  const versionClass =
+    versionNumber >= 2.0
+      ? "higher-version"
+      : versionNumber <= 1.1
+      ? "lower-version"
+      : "";
+
+  const statusCategory =
+    status >= 200 && status < 300
+      ? "success"
+      : status >= 300 && status < 400
+      ? "redirection"
+      : status >= 400 && status < 500
+      ? "client-error"
+      : status >= 500
+      ? "server-error"
+      : "unknown";
+
+  const duration = Object.values(entry.timings).reduce(
+    (sum, time) => sum + (time > 0 ? time : 0),
+    0
+  );
+
+  return `
         <div class="method ${methodClass}">
             ${method}
             <span class="http-version ${versionClass}">${httpVersion}</span>
@@ -465,7 +542,7 @@ export const generateRequestListItem = (entry) => {
         <div class="url" title="${url}">${url}</div>
         <div class="request-info">
             <span class="status ${statusCategory}">Status: ${status}</span>
-            <span class="size">${(responseSize/1024).toFixed(1)} KB</span>
+            <span class="size">${(responseSize / 1024).toFixed(1)} KB</span>
             <span class="bandwidth">${bandwidth}</span>
             <span class="duration">${Math.round(duration)} ms</span>
                         <span class="stat ${concurrentClass}" title="Concurrent Connections">
@@ -474,6 +551,3 @@ export const generateRequestListItem = (entry) => {
         </div>
     `;
 };
-
-
-
