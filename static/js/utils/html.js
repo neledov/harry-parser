@@ -67,45 +67,61 @@ const renderCertificateDetails = (certInfo) => `
 `;
 
 export const generateDetailHTML = (data, curlCommand, languageClass) => {
-  const { request, response } = data;
+  const { request, response, connectionInfo, timings } = data;
 
-  const queryParamsHtml =
-    request.queryString?.length > 0
-      ? request.queryString
-          .map(
-            (q) =>
-              `<li><strong>${escapeHTML(q.name)}:</strong> ${escapeHTML(
-                q.value
-              )}</li>`
-          )
-          .join("")
-      : "<li>No query parameters</li>";
+  const queryParamsHtml = request.queryString?.length > 0
+    ? request.queryString.map(q => 
+        `<li><strong>${escapeHTML(q.name)}:</strong> ${escapeHTML(q.value)}</li>`
+      ).join("")
+    : "<li>No query parameters</li>";
 
-  const requestHeadersHtml =
-    request.headers?.length > 0
-      ? request.headers
-          .map(
-            (h) =>
-              `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(
-                h.value
-              )}</li>`
-          )
-          .join("")
-      : "<li>No request headers</li>";
+  const requestHeadersHtml = request.headers?.length > 0
+    ? request.headers.map(h => 
+        `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(h.value)}</li>`
+      ).join("")
+    : "<li>No request headers</li>";
 
-  const responseHeadersHtml =
-    response.headers?.length > 0
-      ? response.headers
-          .map(
-            (h) =>
-              `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(
-                h.value
-              )}</li>`
-          )
-          .join("")
-      : "<li>No response headers</li>";
+  const responseHeadersHtml = response.headers?.length > 0
+    ? response.headers.map(h => 
+        `<li><strong>${escapeHTML(h.name)}:</strong> ${escapeHTML(h.value)}</li>`
+      ).join("")
+    : "<li>No response headers</li>";
 
   const samlSectionHtml = data.isSaml ? generateSamlSection(data) : "";
+
+  const connectionInfoHtml = `
+    <div class="section connection-info">
+        <h3>Connection Analysis</h3>
+        <div class="connection-stats">
+            <div class="stat ${connectionInfo.concurrent >= 6 ? 'warning' : ''}">
+                <span>Active Connections:</span>
+                <span class="value">${connectionInfo.concurrent}</span>
+                ${connectionInfo.concurrent >= 6 ? 
+                    '<div class="warning-note">Connection pool limit reached</div>' : 
+                    ''}
+            </div>
+            ${connectionInfo.queued > 0 ? `
+                <div class="stat queued">
+                    <span>Queue Time:</span>
+                    <span class="value">${connectionInfo.queued}ms</span>
+                    <div class="detail-note">Time spent waiting for available connection</div>
+                </div>
+            ` : ''}
+            ${connectionInfo.blocked > 0 ? `
+                <div class="stat blocked">
+                    <span>Other Blocking:</span>
+                    <span class="value">${connectionInfo.blocked}ms</span>
+                    <div class="detail-note">DNS, SSL/TLS, and other blocking factors</div>
+                </div>
+            ` : ''}
+            <div class="stat timing">
+                <span>Total Time:</span>
+                <span class="value">${Object.values(timings).reduce((sum, time) => 
+                    sum + (time > 0 ? time : 0), 0)}ms</span>
+            </div>
+        </div>
+    </div>
+  `;
 
   return `
         <div class="section">
@@ -113,33 +129,29 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
                 <canvas id="timelineChartCanvas"></canvas>
             </div>
         </div>
+        ${connectionInfoHtml}
         ${samlSectionHtml}
         <div class="section">
-            <button class="copy-button curl-button" data-text="${encodeURIComponent(
-              curlCommand
-            )}" aria-label="Copy cURL Command">
+            <button class="copy-button curl-button" data-text="${encodeURIComponent(curlCommand)}" 
+                    aria-label="Copy cURL Command">
                 <i class="fas fa-copy"></i> Copy cURL
             </button>
-            <pre><code class="language-bash">${escapeHTML(
-              curlCommand
-            )}</code></pre>
+            <pre><code class="language-bash">${escapeHTML(curlCommand)}</code></pre>
         </div>
         <div class="section">
             <h3>Request Details</h3>
-            <p><strong>Method:</strong> ${escapeHTML(
-              request.method || "N/A"
-            )}</p>
-            <p><strong>URL:</strong> <a href="${escapeHTML(
-              request.url || "#"
-            )}" target="_blank" rel="noopener noreferrer">
-                ${escapeHTML(request.url || "N/A")}
-            </a></p>
+            <p><strong>Method:</strong> ${escapeHTML(request.method || "N/A")}</p>
+            <p><strong>URL:</strong> 
+                <a href="${escapeHTML(request.url || "#")}" 
+                   target="_blank" rel="noopener noreferrer">
+                    ${escapeHTML(request.url || "N/A")}
+                </a>
+            </p>
         </div>
         <div class="section">
             <h3>Response Details</h3>
-            <p><strong>Status:</strong> ${escapeHTML(
-              String(response.status)
-            )} ${escapeHTML(response.statusText || "")}</p>
+            <p><strong>Status:</strong> ${escapeHTML(String(response.status))} 
+                ${escapeHTML(response.statusText || "")}</p>
         </div>
         <div class="section">
             <h3>Request Headers</h3>
@@ -149,48 +161,33 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
             <h3>Query Parameters</h3>
             <ul>${queryParamsHtml}</ul>
         </div>
-        ${
-          request.postData && request.postData.text
-            ? `
+        ${request.postData && request.postData.text ? `
             <div class="section">
-                            <button class="copy-button" data-text="${encodeURIComponent(
-                  request.postData.text
-                )}" aria-label="Copy Post Data">
+                <button class="copy-button" data-text="${encodeURIComponent(request.postData.text)}" 
+                        aria-label="Copy Post Data">
                     <i class="fas fa-copy"></i> Copy
                 </button>
                 <h3>Post Data</h3>
-                <pre><code class="${languageClass}">${escapeHTML(
-                formatJSON(request.postData.text)
-              )}</code></pre>
-
+                <pre><code class="${languageClass}">${escapeHTML(formatJSON(request.postData.text))}</code></pre>
             </div>
-        `
-            : ""
-        }
+        ` : ""}
         <div class="section">
             <h3>Response Headers</h3>
             <ul>${responseHeadersHtml}</ul>
         </div>
-        ${
-          response.content && response.content.text
-            ? `
+        ${response.content && response.content.text ? `
             <div class="section">
-                            <button class="copy-button" data-text="${encodeURIComponent(
-                  response.content.text
-                )}" aria-label="Copy Response Content">
+                <button class="copy-button" data-text="${encodeURIComponent(response.content.text)}" 
+                        aria-label="Copy Response Content">
                     <i class="fas fa-copy"></i> Copy
                 </button>
                 <h3>Response Content</h3>
-                <pre><code class="${languageClass}">${escapeHTML(
-                formatJSON(response.content.text)
-              )}</code></pre>
-
+                <pre><code class="${languageClass}">${escapeHTML(formatJSON(response.content.text))}</code></pre>
             </div>
-        `
-            : '<div class="section"><p>No response content available.</p></div>'
-        }
+        ` : '<div class="section"><p>No response content available.</p></div>'}
     `;
 };
+
 
 export const generateSamlSection = (data) => {
   if (!data.isSaml) return "";

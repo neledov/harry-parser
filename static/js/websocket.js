@@ -30,6 +30,8 @@ export class HARSocketClient {
         this.renderQueue = [];
         this.isRendering = false;
         this.startTime = null;
+        this.activeConnections = new Map();
+        this.maxConnections = 6;
         this.setupListeners();
         this.showLoadingOverlay();
     }
@@ -81,10 +83,35 @@ export class HARSocketClient {
         });
     }
 
+    calculateConcurrentConnections(timestamp, timings = {}) {
+        const current = new Date(timestamp);
+        let activeConnections = 0;
+        let queuedTime = 0;
+        
+        this.activeConnections.forEach((conn) => {
+            if (current >= conn.start && current <= conn.end) {
+                activeConnections++;
+            }
+        });
+    
+        // Default to 0 if blocked timing is undefined
+        const blockedTime = timings.blocked || 0;
+    
+        if (activeConnections >= this.maxConnections) {
+            queuedTime = blockedTime;
+        }
+    
+        return {
+            concurrent: activeConnections,
+            queued: queuedTime,
+            blocked: blockedTime - queuedTime
+        };
+    }
+    
+
     async handleDataChunk(data) {
         const { chunk, progress, isLast, fromCache } = data;
         
-        // Calculate estimated time
         const currentTime = Date.now();
         if (!this.startTime) {
             this.startTime = currentTime;
@@ -103,6 +130,20 @@ export class HARSocketClient {
         this.updateProgressBar(progress);
         
         if (Array.isArray(chunk) && chunk.length > 0) {
+            chunk.forEach(entry => {
+                const timestamp = entry.startedDateTime;
+                const duration = Object.values(entry.timings)
+                    .reduce((sum, time) => sum + (time > 0 ? time : 0), 0);
+                
+                this.activeConnections.set(timestamp, {
+                    start: new Date(timestamp),
+                    end: new Date(new Date(timestamp).getTime() + duration),
+                    blocked: entry.timings.blocked > 0
+                });
+
+                entry.connectionInfo = this.calculateConcurrentConnections(timestamp);
+            });
+
             if (!fromCache) {
                 await HarDatabase.storeHarData(window.filename, chunk);
             }
@@ -159,7 +200,8 @@ export class HARSocketClient {
             this.dataCache[globalIndex] = {
                 request: entry.request,
                 response: entry.response,
-                timings: entry.timings
+                timings: entry.timings,
+                connectionInfo: entry.connectionInfo
             };
             
             const li = document.createElement('li');
@@ -236,7 +278,7 @@ export class HARSocketClient {
 }
 
 function formatTimeRemaining(seconds) {
-    const s = Math.round(Number(seconds)); // Ensure 's' is an integer
+    const s = Math.round(Number(seconds));
     if (s < 60) {
         return `${s} second${s === 1 ? '' : 's'} remaining`;
     } else if (s < 3600) {
@@ -247,4 +289,3 @@ function formatTimeRemaining(seconds) {
         return `${hours} hour${hours === 1 ? '' : 's'} remaining`;
     }
 }
-
