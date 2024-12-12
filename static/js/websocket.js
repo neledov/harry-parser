@@ -82,87 +82,98 @@ export class HARSocketClient {
             showToast(error.message, 3000);
         });
     }
+
     calculateConcurrentConnections(timestamp, timings = {}) {
         const current = new Date(timestamp);
-        
-        // Clean up expired connections first
+
+        // Remove expired connections
         for (const [key, conn] of this.activeConnections) {
             if (conn.end < current) {
                 this.activeConnections.delete(key);
             }
         }
-        
-        // Get active connections at this exact timestamp
-        const activeConnections = Array.from(this.activeConnections.values()).filter(conn => {
-            return current >= conn.start && current <= conn.end;
-        });
-    
-        // Count connections by state
-        const connectionStates = activeConnections.reduce((acc, conn) => {
-            if (conn.blocked > 0) acc.blocked++;
-            if (conn.queued) acc.queued++;
-            acc.total++;
-            return acc;
-        }, { total: 0, blocked: 0, queued: 0 });
-    
-        // Calculate queuing when browser limit is reached
-        const isAtLimit = connectionStates.total >= this.maxConnections;
-        const queuedTime = isAtLimit ? (timings.blocked || 0) : 0;
-        
+
+        const currentlyQueued = [];
+        const currentlyActive = [];
+
+        for (const conn of this.activeConnections.values()) {
+            // If current time is before active start, it's queued (blocked)
+            if (current >= conn.originalStart && current < conn.start) {
+                currentlyQueued.push(conn);
+            } else if (current >= conn.start && current <= conn.end) {
+                currentlyActive.push(conn);
+            }
+        }
+
+        const totalActive = currentlyActive.length;
+        const totalQueued = currentlyQueued.length;
+        const isAtLimit = totalActive >= this.maxConnections;
+        const blockedTime = timings.blocked || 0;
+        const queuedTime = isAtLimit ? blockedTime : 0;
+
+        const reason = getBlockedReason(timings, isAtLimit);
+
         return {
-            concurrent: connectionStates.total,
+            concurrent: totalActive,
             queued: queuedTime,
-            blocked: (timings.blocked || 0) - queuedTime,
+            blocked: blockedTime - queuedTime,
             atLimit: isAtLimit,
-            activeConnections: connectionStates,
+            reason,
+            activeConnections: {
+                total: totalActive + totalQueued,
+                blocked: totalQueued,
+                queued: totalQueued
+            },
             browserLimit: this.maxConnections
         };
     }
-    
-    
-    
 
     async handleDataChunk(data) {
         const { chunk, progress, isLast, fromCache } = data;
-        
+
         const currentTime = Date.now();
         if (!this.startTime) {
             this.startTime = currentTime;
         }
-        
+
         const elapsed = (currentTime - this.startTime) / 1000;
         const percentComplete = progress / 100;
         const estimatedTotal = elapsed / percentComplete;
         const remaining = Math.ceil(estimatedTotal - elapsed);
-        
+
         const timeText = document.querySelector('.loading-overlay .time-remaining');
         if (timeText) {
             timeText.textContent = formatTimeRemaining(remaining);
         }
-        
+
         this.updateProgressBar(progress);
-        
+
         if (Array.isArray(chunk) && chunk.length > 0) {
-            chunk.forEach(entry => {
+            for (let entry of chunk) {
                 const timestamp = entry.startedDateTime;
                 const duration = Object.values(entry.timings)
                     .reduce((sum, time) => sum + (time > 0 ? time : 0), 0);
-                
-                    const blockedTime = entry.timings.blocked > 0 ? entry.timings.blocked : 0;
+
+                const blockedTime = entry.timings.blocked > 0 ? entry.timings.blocked : 0;
+                const originalStart = new Date(timestamp);
+                const startActive = new Date(originalStart.getTime() + blockedTime);
+                const activeDuration = duration - blockedTime;
+                const end = new Date(startActive.getTime() + activeDuration);
 
                 this.activeConnections.set(timestamp, {
-                    start: new Date(timestamp),
-                    end: new Date(new Date(timestamp).getTime() + duration),
+                    originalStart: originalStart,
+                    start: startActive,
+                    end: end,
                     blocked: blockedTime
                 });
 
-                entry.connectionInfo = this.calculateConcurrentConnections(timestamp);
-            });
+                entry.connectionInfo = this.calculateConcurrentConnections(timestamp, entry.timings);
+            }
 
             if (!fromCache) {
                 await HarDatabase.storeHarData(window.filename, chunk);
             }
-            
+
             this.renderQueue.push(chunk);
             if (!this.isRendering) {
                 await this.processRenderQueue();
@@ -178,7 +189,7 @@ export class HARSocketClient {
     updateProgressBar(progress) {
         const circle = document.querySelector('.loading-overlay .circular-progress .progress');
         const text = document.querySelector('.loading-overlay .circular-progress .progress-text');
-        
+
         if (circle && text) {
             const circumference = 2 * Math.PI * 45;
             const offset = circumference - (progress / 100) * circumference;
@@ -190,7 +201,7 @@ export class HARSocketClient {
 
     async processRenderQueue() {
         this.isRendering = true;
-        
+
         while (this.renderQueue.length > 0) {
             const batch = this.renderQueue.shift();
             await new Promise(resolve => {
@@ -218,21 +229,21 @@ export class HARSocketClient {
                 timings: entry.timings,
                 connectionInfo: entry.connectionInfo
             };
-            
+
             const li = document.createElement('li');
             li.dataset.index = globalIndex;
             li.dataset.statusCode = entry.response?.status || '';
             li.dataset.contentType = entry.response?.content?.mimeType || '';
-            
+
             if (entry.response?.status >= 400) {
                 li.classList.add('error-request');
             }
-            
-            if (window.HARRY.utils.saml.isRequest(entry.request) || 
+
+            if (window.HARRY.utils.saml.isRequest(entry.request) ||
                 window.HARRY.utils.saml.isResponse(entry.response)) {
                 li.classList.add('saml-request');
             }
-            
+
             li.innerHTML = generateRequestListItem(entry);
             fragment.appendChild(li);
         });
@@ -243,7 +254,7 @@ export class HARSocketClient {
     async finalizeLoading() {
         this.hideLoadingOverlay();
         window.requestCache = this.dataCache;
-        
+
         if (window.HARRY.handlers.filterRequests) {
             window.HARRY.handlers.filterRequests();
         }
@@ -253,7 +264,7 @@ export class HARSocketClient {
         try {
             const cachedData = await HarDatabase.getHarData(filename);
             const loadingText = document.querySelector('.loading-overlay .loading-text');
-            
+
             if (cachedData && cachedData.length > 0) {
                 if (loadingText) {
                     loadingText.textContent = 'loading from cache...';
@@ -265,7 +276,7 @@ export class HARSocketClient {
                 for (let i = 0; i < totalEntries; i += this.batchSize) {
                     const chunk = cachedData.slice(i, i + this.batchSize);
                     processedEntries += chunk.length;
-                    
+
                     await this.handleDataChunk({
                         chunk,
                         progress: (processedEntries / totalEntries) * 100,
@@ -303,4 +314,31 @@ function formatTimeRemaining(seconds) {
         const hours = Math.round(s / 3600);
         return `${hours} hour${hours === 1 ? '' : 's'} remaining`;
     }
+}
+
+/**
+ * Determine the reason for blocked or queued requests.
+ * @param {Object} timings - The HAR timings object.
+ * @param {Boolean} atLimit - Indicates if the browser’s connection limit is reached.
+ * @returns {String} - The reason for being blocked/queued.
+ */
+function getBlockedReason(timings, atLimit) {
+    // If we hit the connection limit, that’s the primary reason
+    if (atLimit) {
+        return 'Browser connection limit reached';
+    }
+
+    // If not at the limit, check DNS, SSL, or connect delays
+    if ((timings.dns || 0) > 0) {
+        return 'Waiting for DNS resolution';
+    }
+    if ((timings.ssl || 0) > 0) {
+        return 'Waiting for SSL/TLS handshake';
+    }
+    if ((timings.connect || 0) > 0) {
+        return 'Waiting for TCP connection';
+    }
+
+    // Fallback reason
+    return 'Other blocked reason (possibly browser scheduling)';
 }

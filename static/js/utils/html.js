@@ -94,26 +94,13 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
         <h3>Connection Analysis</h3>
         <div class="connection-stats">
             <div class="stat ${connectionInfo.concurrent >= 6 ? 'warning' : ''}">
-                <span>Active Connections:</span>
+                <span>Active:</span>
                 <span class="value">${connectionInfo.concurrent}</span>
                 ${connectionInfo.concurrent >= 6 ? 
                     '<div class="warning-note">Connection pool limit reached</div>' : 
                     ''}
             </div>
-            ${connectionInfo.queued > 0 ? `
-                <div class="stat queued">
-                    <span>Queue Time:</span>
-                    <span class="value">${connectionInfo.queued}ms</span>
-                    <div class="detail-note">Time spent waiting for available connection</div>
-                </div>
-            ` : ''}
-            ${connectionInfo.blocked > 0 ? `
-                <div class="stat blocked">
-                    <span>Other Blocking:</span>
-                    <span class="value">${connectionInfo.blocked}ms</span>
-                    <div class="detail-note">DNS, SSL/TLS, and other blocking factors</div>
-                </div>
-            ` : ''}
+  
             <div class="stat timing">
                 <span>Total Time:</span>
                 <span class="value">${Object.values(timings).reduce((sum, time) => 
