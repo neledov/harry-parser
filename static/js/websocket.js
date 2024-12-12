@@ -82,7 +82,6 @@ export class HARSocketClient {
             showToast(error.message, 3000);
         });
     }
-
     calculateConcurrentConnections(timestamp, timings = {}) {
         const current = new Date(timestamp);
         
@@ -93,21 +92,30 @@ export class HARSocketClient {
             }
         }
         
-        // Count only active connections within the time window
-        const activeCount = Array.from(this.activeConnections.values()).filter(conn => {
-            const startTime = new Date(conn.start.getTime());
-            const endTime = new Date(conn.end.getTime());
-            return current >= startTime && current <= endTime;
-        }).length;
+        // Get active connections at this exact timestamp
+        const activeConnections = Array.from(this.activeConnections.values()).filter(conn => {
+            return current >= conn.start && current <= conn.end;
+        });
     
-        // Calculate queuing when connection limit is reached
-        const isQueued = activeCount >= this.maxConnections;
-        const queuedTime = isQueued ? timings.blocked || 0 : 0;
+        // Count connections by state
+        const connectionStates = activeConnections.reduce((acc, conn) => {
+            if (conn.blocked > 0) acc.blocked++;
+            if (conn.queued) acc.queued++;
+            acc.total++;
+            return acc;
+        }, { total: 0, blocked: 0, queued: 0 });
+    
+        // Calculate queuing when browser limit is reached
+        const isAtLimit = connectionStates.total >= this.maxConnections;
+        const queuedTime = isAtLimit ? (timings.blocked || 0) : 0;
         
         return {
-            concurrent: activeCount,
+            concurrent: connectionStates.total,
             queued: queuedTime,
-            blocked: (timings.blocked || 0) - queuedTime
+            blocked: (timings.blocked || 0) - queuedTime,
+            atLimit: isAtLimit,
+            activeConnections: connectionStates,
+            browserLimit: this.maxConnections
         };
     }
     
