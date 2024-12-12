@@ -3,6 +3,20 @@ import { decodeSamlMessage, parseSamlXml } from "./saml.js";
 import { analyzeSamlSecurity } from "./saml-analyzer.js";
 import { analyzeRequestTiming } from "./timing-analyzer.js";
 
+const getTimingIcon = (type) => {
+  const icons = {
+      connection_limit: 'fa-layer-group',
+      dns: 'fa-globe',
+      ssl: 'fa-lock',
+      connect: 'fa-plug',
+      ttfb: 'fa-server',
+      blocked: 'fa-clock'
+  };
+  return icons[type] || 'fa-circle';
+};
+
+
+
 const renderTimestampValidation = (timestamps) => {
   if (timestamps.status === "missing") {
     return `<p class="warning">${timestamps.details}</p>`;
@@ -92,37 +106,41 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
   const samlSectionHtml = data.isSaml ? generateSamlSection(data) : "";
 
   const connectionInfoHtml = `
-    <div class="section connection-info">
-        <h3>Connection Analysis</h3>
-        <div class="connection-stats">
-            <div class="stat ${connectionInfo.concurrent >= 6 ? 'warning' : ''}">
-                <span>Active:</span>
-                <span class="value">${connectionInfo.concurrent}</span>
-                ${connectionInfo.concurrent >= 6 ? 
-                    '<div class="warning-note">Connection pool limit reached</div>' : 
-                    ''}
-            </div>
-            <div class="stat timing">
-                <span>Total Time:</span>
-                <span class="value">${Object.values(timings).reduce((sum, time) => 
-                    sum + (time > 0 ? time : 0), 0)}ms</span>
-            </div>
-        </div>
-    </div>
-  `;
+  <div class="section connection-info">
+      <h3>Connection Analysis</h3>
+      <div class="connection-stats">
+          <div class="stat ${connectionInfo.concurrent >= 6 ? 'warning' : ''}">
+              <span>Active Connections:</span>
+              <span class="value">${connectionInfo.concurrent}</span>
+              ${connectionInfo.concurrent >= 6 ? 
+                  '<div class="warning-note">Connection pool limit reached</div>' : 
+                  ''}
+          </div>
+          <div class="stat timing">
+              <span>Total Time:</span>
+              <span class="value">${Object.values(timings).reduce((sum, time) => 
+                  sum + (time > 0 ? time : 0), 0)}ms</span>
+          </div>
+      </div>
+      
+      <div class="timing-explanation">
+          <p>${timingAnalysis.explanation}</p>
+      </div>
+      
+      <div class="timing-details">
+          ${timingAnalysis.delays.map(delay => `
+              <div class="timing-detail ${delay.type}">
+                  <span class="timing-label">
+                      <i class="fas ${getTimingIcon(delay.type)}"></i>
+                      ${delay.type.replace(/_/g, ' ').toUpperCase()}
+                  </span>
+                  <span class="timing-duration">${delay.duration}ms</span>
+              </div>
+          `).join('')}
+      </div>
+  </div>
+`;
 
-  const timingAnalysisHtml = `
-    <div class="section timing-analysis">
-        <div class="timing-explanation">
-            <p>${timingAnalysis.explanation}</p>
-        </div>
-        ${timingAnalysis.delays.map(delay => `
-            <div class="timing-detail ${delay.type}">
-                <span class="timing-label">${delay.type}</span>
-            </div>
-        `).join('')}
-    </div>
-  `;
 
   return `
         <div class="section">
@@ -131,7 +149,6 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
             </div>
         </div>
         ${connectionInfoHtml}
-        ${timingAnalysisHtml}
         ${samlSectionHtml}
         <div class="section">
             <button class="copy-button curl-button" data-text="${encodeURIComponent(curlCommand)}" 
