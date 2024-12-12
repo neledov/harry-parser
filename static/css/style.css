@@ -1346,11 +1346,13 @@ input[type="submit"]:hover {
 
 .connection-info {
   margin-top: 20px;
+  font-size: 0.6em;
 }
 
 .connection-stats {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  font-size: 0.6em;
   gap: 15px;
 }
 
@@ -1364,9 +1366,11 @@ input[type="submit"]:hover {
 }
 
 .stat.blocked {
+  font-size: 0.6em;
   border-left: 4px solid #FF6961;
 }
 
-.stat .value.warning {
+.stat.warning {
+  font-size: 0.6em;
   color: #FFB347;
 }

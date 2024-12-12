@@ -85,28 +85,33 @@ export class HARSocketClient {
 
     calculateConcurrentConnections(timestamp, timings = {}) {
         const current = new Date(timestamp);
-        let activeConnections = 0;
-        let queuedTime = 0;
         
-        this.activeConnections.forEach((conn) => {
-            if (current >= conn.start && current <= conn.end) {
-                activeConnections++;
+        // Clean up expired connections first
+        for (const [key, conn] of this.activeConnections) {
+            if (conn.end < current) {
+                this.activeConnections.delete(key);
             }
-        });
-    
-        // Default to 0 if blocked timing is undefined
-        const blockedTime = timings.blocked || 0;
-    
-        if (activeConnections >= this.maxConnections) {
-            queuedTime = blockedTime;
         }
+        
+        // Count only active connections within the time window
+        const activeCount = Array.from(this.activeConnections.values()).filter(conn => {
+            const startTime = new Date(conn.start.getTime());
+            const endTime = new Date(conn.end.getTime());
+            return current >= startTime && current <= endTime;
+        }).length;
     
+        // Calculate queuing when connection limit is reached
+        const isQueued = activeCount >= this.maxConnections;
+        const queuedTime = isQueued ? timings.blocked || 0 : 0;
+        
         return {
-            concurrent: activeConnections,
+            concurrent: activeCount,
             queued: queuedTime,
-            blocked: blockedTime - queuedTime
+            blocked: (timings.blocked || 0) - queuedTime
         };
     }
+    
+    
     
 
     async handleDataChunk(data) {
@@ -135,10 +140,12 @@ export class HARSocketClient {
                 const duration = Object.values(entry.timings)
                     .reduce((sum, time) => sum + (time > 0 ? time : 0), 0);
                 
+                    const blockedTime = entry.timings.blocked > 0 ? entry.timings.blocked : 0;
+
                 this.activeConnections.set(timestamp, {
                     start: new Date(timestamp),
                     end: new Date(new Date(timestamp).getTime() + duration),
-                    blocked: entry.timings.blocked > 0
+                    blocked: blockedTime
                 });
 
                 entry.connectionInfo = this.calculateConcurrentConnections(timestamp);
