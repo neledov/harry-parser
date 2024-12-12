@@ -194,7 +194,7 @@ Total Time: ${Object.values(timings).reduce(
             <button class="copy-button curl-button" data-text="${encodeURIComponent(
               curlCommand
             )}" 
-                    aria-label="Copy cURL Command">
+                    aria-label="Copy cURL">
                 <i class="fas fa-copy"></i> Copy cURL
             </button>
             <pre><code class="language-bash">${escapeHTML(
