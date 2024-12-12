@@ -1,6 +1,7 @@
 import { escapeHTML, formatJSON,calculateBandwidth } from "./helpers.js";
 import { decodeSamlMessage, parseSamlXml } from "./saml.js";
 import { analyzeSamlSecurity } from "./saml-analyzer.js";
+import { analyzeRequestTiming } from "./timing-analyzer.js";
 
 const renderTimestampValidation = (timestamps) => {
   if (timestamps.status === "missing") {
@@ -68,6 +69,7 @@ const renderCertificateDetails = (certInfo) => `
 
 export const generateDetailHTML = (data, curlCommand, languageClass) => {
   const { request, response, connectionInfo, timings } = data;
+  const timingAnalysis = analyzeRequestTiming(data);
 
   const queryParamsHtml = request.queryString?.length > 0
     ? request.queryString.map(q => 
@@ -100,13 +102,25 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
                     '<div class="warning-note">Connection pool limit reached</div>' : 
                     ''}
             </div>
-  
             <div class="stat timing">
                 <span>Total Time:</span>
                 <span class="value">${Object.values(timings).reduce((sum, time) => 
                     sum + (time > 0 ? time : 0), 0)}ms</span>
             </div>
         </div>
+    </div>
+  `;
+
+  const timingAnalysisHtml = `
+    <div class="section timing-analysis">
+        <div class="timing-explanation">
+            <p>${timingAnalysis.explanation}</p>
+        </div>
+        ${timingAnalysis.delays.map(delay => `
+            <div class="timing-detail ${delay.type}">
+                <span class="timing-label">${delay.type}</span>
+            </div>
+        `).join('')}
     </div>
   `;
 
@@ -117,6 +131,7 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
             </div>
         </div>
         ${connectionInfoHtml}
+        ${timingAnalysisHtml}
         ${samlSectionHtml}
         <div class="section">
             <button class="copy-button curl-button" data-text="${encodeURIComponent(curlCommand)}" 
@@ -174,6 +189,7 @@ export const generateDetailHTML = (data, curlCommand, languageClass) => {
         ` : '<div class="section"><p>No response content available.</p></div>'}
     `;
 };
+
 
 
 export const generateSamlSection = (data) => {
