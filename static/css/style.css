@@ -437,19 +437,6 @@ input[type="submit"]:hover {
   margin-bottom: 15px;
 }
 
-.curl-button {
-  background-color: #333333;
-  color: #CCCCCC;
-  border: none;
-  padding: 10px 20px;
-  cursor: pointer;
-  border-radius: 4px;
-  font-weight: bold;
-  transition: background-color 0.3s ease;
-}
-.curl-button:hover {
-  background-color: #404040;
-}
 
 
 /* ----------------------------------------
