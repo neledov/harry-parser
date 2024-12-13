@@ -41,7 +41,7 @@ if __name__ == '__main__':
 
     host, port = load_config()
     socketio.run(app,
-                 debug=True,
+                 debug=False,
                  certfile='cert.pem',
                  keyfile='key.pem',
                  host=host,

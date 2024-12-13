@@ -2,7 +2,7 @@
 
 import multiprocessing
 
-bind = "0.0.0.0:443"
+bind = "127.0.0.1:8000"
 worker_class = "eventlet"
 workers = 1
 certfile = "cert.pem"

@@ -1,7 +1,7 @@
 eventlet
 Flask
 Flask-Login
-flask_login
+flask_httpauth
 Flask-SocketIO
 Flask-Compress
 SQLAlchemy
