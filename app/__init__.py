@@ -37,7 +37,7 @@ def create_app():
     # Initialize extensions
     db.init_app(app)
     login_manager.init_app(app)
-    login_manager.login_view = 'login'
+    login_manager.login_view = 'main.login'
     compress.init_app(app)
     socketio.init_app(app,
                       async_mode='eventlet',
