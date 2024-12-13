@@ -1,26 +1,25 @@
-# Byte-compiled / optimized / DLL files
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
 
 # Virtual Environment
 venv/
-ENV/
 env/
-scripts/
+ENV/
+
+# Instance & Data
 instance/
 *.db
 *.pem
-# Logs
+*.json
+*.har
+
+# Uploads & Logs
+uploads/
 logs/
 *.log
-*.har
-# Uploads
-uploads/
 
-
-# macOS
+# OS Files
 .DS_Store
-
-# Windows
 Thumbs.db
