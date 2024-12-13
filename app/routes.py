@@ -1,7 +1,9 @@
 import os
 import logging
+import time
+import json
 from pathlib import Path
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, Response, stream_with_context, g
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from flask_httpauth import HTTPBasicAuth
@@ -59,7 +61,9 @@ def handle_file_upload(file, user):
 def verify_password(username, password):
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
-        return user
+        g.user = user  # Store user in Flask's g context
+        return True
+    return False
 
 @main.route('/login', methods=['GET', 'POST'])
 def login():
@@ -171,22 +175,179 @@ def requests_page(filename):
 @main.route('/api/v1/upload', methods=['POST'])
 @basic_auth.login_required
 def api_v1_upload_file():
-    if 'harfile' not in request.files:
-        return jsonify({'error': 'No file part'}), 400
+    user = g.get('user', None)
+    if not user:
+        return jsonify({'error': 'Authentication failed'}), 401
 
-    file = request.files['harfile']
-    if file.filename == '' or not allowed_file(file.filename):
-        return jsonify({'error': 'Invalid file'}), 400
+    def generate():
+        try:
+            if 'harfile' not in request.files:
+                error_data = {'error': 'No file part'}
+                yield f"data: {json.dumps(error_data)}\n\n"
+                return
 
-    try:
-        user = basic_auth.current_user()
-        filename, _ = handle_file_upload(file, user)
-        processing_url = url_for('main.requests_page', filename=filename, _external=True)
-        return jsonify({
-            'success': True,
-            'filename': filename,
-            'processing_url': processing_url
-        })
-    except Exception as e:
-        logging.error(f"API upload error: {str(e)}")
-        return jsonify({'error': 'Upload failed'}), 500
+            file = request.files['harfile']
+            if file.filename == '' or not allowed_file(file.filename):
+                error_data = {'error': 'Invalid file'}
+                yield f"data: {json.dumps(error_data)}\n\n"
+                return
+
+            filename = secure_filename(file.filename)
+            user_upload_dir = user.get_user_upload_folder()
+            Path(user_upload_dir).mkdir(parents=True, exist_ok=True)
+            filepath = os.path.join(user_upload_dir, filename)
+
+            # Check and remove existing file
+            existing_file = HARFile.query.filter_by(
+                filename=filename,
+                user_id=user.id
+            ).first()
+
+            if existing_file:
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                db.session.delete(existing_file)
+                db.session.commit()
+
+            file_size = int(request.headers.get('Content-Length', 0))
+            chunk_size = 4096
+            uploaded = 0
+            start_time = time.time()
+            last_progress = 0
+
+            with open(filepath, 'wb') as f:
+                while True:
+                    chunk = file.stream.read(chunk_size)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    uploaded += len(chunk)
+                    
+                    # Calculate current progress percentage
+                    current_progress = (uploaded / file_size) * 100
+                    
+                    # Emit progress every 5%
+                    if int(current_progress / 5) > int(last_progress / 5):
+                        elapsed = time.time() - start_time
+                        speed = (uploaded / (1024 * 1024)) / elapsed if elapsed > 0 else 0
+                        eta = ((file_size - uploaded) / (1024 * 1024)) / speed if speed > 0 else 0
+
+                        data = {
+                            'uploaded_bytes': uploaded,
+                            'total_size': file_size,
+                            'progress_percent': int(current_progress),
+                            'speed_MB_s': round(speed, 2),
+                            'eta_seconds': int(eta)
+                        }
+                        yield f"data: {json.dumps(data)}\n\n"
+                        last_progress = current_progress
+
+            # Final update
+            processing_url = url_for('main.requests_page', filename=filename, _external=True)
+            har_file = HARFile(
+                filename=filename,
+                filesize=file_size,
+                user_id=user.id
+            )
+            db.session.add(har_file)
+            db.session.commit()
+            logging.info(f"User {user.username} uploaded HAR file: {filename}")
+            
+            data = {
+                'filename': filename,
+                'processing_url': processing_url,
+                'success': True,
+                'progress_percent': 100
+            }
+            yield f"data: {json.dumps(data)}\n\n"
+
+        except Exception as e:
+            logging.error(f"API upload error: {str(e)}")
+            error_data = {'error': 'Upload failed'}
+            yield f"data: {json.dumps(error_data)}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+
+    user = g.get('user', None)
+    if not user:
+        return jsonify({'error': 'Authentication failed'}), 401
+
+    def generate():
+        try:
+            if 'harfile' not in request.files:
+                error_data = {'error': 'No file part'}
+                yield f"data: {json.dumps(error_data)}\n\n"
+                return
+
+            file = request.files['harfile']
+            if file.filename == '' or not allowed_file(file.filename):
+                error_data = {'error': 'Invalid file'}
+                yield f"data: {json.dumps(error_data)}\n\n"
+                return
+
+            filename = secure_filename(file.filename)
+            user_upload_dir = user.get_user_upload_folder()
+            Path(user_upload_dir).mkdir(parents=True, exist_ok=True)
+            filepath = os.path.join(user_upload_dir, filename)
+
+            # Check and remove existing file
+            existing_file = HARFile.query.filter_by(
+                filename=filename,
+                user_id=user.id
+            ).first()
+
+            if existing_file:
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                db.session.delete(existing_file)
+                db.session.commit()
+
+            file_size = int(request.headers.get('Content-Length', 0))
+            chunk_size = 4096
+            uploaded = 0
+            start_time = time.time()
+            last_update = start_time
+
+            with open(filepath, 'wb') as f:
+                while True:
+                    chunk = file.stream.read(chunk_size)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+                    uploaded += len(chunk)
+                    current_time = time.time()
+                    elapsed = current_time - start_time
+                    speed = (uploaded / (1024 * 1024)) / elapsed if elapsed > 0 else 0
+                    eta = ((file_size - uploaded) / (1024 * 1024)) / speed if speed > 0 else 0
+
+                    data = {
+                            'uploaded_bytes': uploaded,
+                            'total_size': file_size,
+                            'speed_MB_s': round(speed, 2),
+                            'eta_seconds': int(eta)
+                    }
+                    yield f"data: {json.dumps(data)}\n\n"
+
+            # Final update
+            processing_url = url_for('main.requests_page', filename=filename, _external=True)
+            har_file = HARFile(
+                filename=filename,
+                filesize=file_size,
+                user_id=user.id
+            )
+            db.session.add(har_file)
+            db.session.commit()
+            logging.info(f"User {user.username} uploaded HAR file: {filename}")
+            data = {
+                'filename': filename,
+                'processing_url': processing_url,
+                'success': True
+            }
+            yield f"data: {json.dumps(data)}\n\n"
+
+        except Exception as e:
+            logging.error(f"API upload error: {str(e)}")
+            error_data = {'error': 'Upload failed'}
+            yield f"data: {json.dumps(error_data)}\n\n"
+
+    return Response(stream_with_context(generate()), mimetype='text/event-stream')
