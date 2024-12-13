@@ -12,6 +12,8 @@ import { validateXmlSignature } from './utils/signature-validator.js';
 import { loadRequestDetail, filterRequests, deleteFile, renderRequestDetail, updateSelectedRequest } from './handlers/request-handler.js';
 import { HarDatabase } from './core/indexed-db-manager.js';
 
+export { debounce } from './core/common-utils.js';
+export { handleFileUpload } from './handlers/file-upload-handler.js';
 
 // Cache container
 window.requestCache = null;
