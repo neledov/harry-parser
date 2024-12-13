@@ -1,3 +1,5 @@
+#gunicorn -c gunicorn.conf.py wsgi:app
+
 import multiprocessing
 
 bind = "0.0.0.0:443"
