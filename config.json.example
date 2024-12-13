@@ -1,4 +1,4 @@
-#rename to config.json
+##rename to config.json
 {
     "host": "127.0.0.1",
     "port": 8443
