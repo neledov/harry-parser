@@ -1,9 +1,10 @@
+import eventlet
+eventlet.monkey_patch() 
+
 import os
 import json
 from app import create_app, socketio
 from app.utils import generate_certificates
-import eventlet
-eventlet.monkey_patch() 
 
 DEFAULT_HOST = '127.0.0.1'
 DEFAULT_PORT = 8443
