@@ -1,33 +1,44 @@
-# HARRY - HAR Analyzer
+# HARRY - HAR Request Analyzer
 ```
  ____   ____
 /  0 \_/  0 \_______
 \___/  \___/       \\ 
                 HARRY
   ```
-
-HARRY is an offline web-based HTTP Archive (HAR) file analyzer with a special focus on SAML traffic analysis and security assessment.
+A web application for analyzing HTTP Archive (HAR) files with special focus on SAML request analysis and network performance metrics.
 
 ## Features
 
-- Secure multi-user authentication system
-- Real-time HAR file parsing and visualization
-- Advanced SAML message analysis and validation
-- XML signature verification
-- Certificate chain analysis
-- Timeline visualization for request/response cycles
-- Intelligent request filtering and search capabilities
-- Response content search functionality
-- Syntax highlighting for various content types
+- Real-time HAR file parsing and analysis
+- SAML request detection and detailed analysis
+- Network performance visualization
+- Certificate validation and analysis
+- Encryption strength assessment
+- Timeline visualization for request lifecycle
+- Advanced filtering and search capabilities
+- Concurrent connection analysis
 - WebSocket-based streaming for large files
+- Offline support with IndexedDB caching
 
-## Technology Stack
+### Technical Highlights
 
-- **Backend**: Flask, SQLAlchemy, Flask-SocketIO
-- **Frontend**: Vanilla JavaScript (ES6+), Chart.js
-- **Security**: Flask-Login, Werkzeug
-- **Database**: SQLite
-- **Styling**: Custom CSS with dark theme
+- WebSocket streaming for efficient data transfer
+- Event-driven architecture
+- Modular JavaScript with clear separation of concerns
+- Responsive visualization using Chart.js
+- Efficient caching with IndexedDB
+- GZIP compression support
+- Multi-user support with authentication
+
+## Tech Stack
+
+- Backend: Flask, Python 3.8+
+- Frontend: Vanilla JavaScript (ES6+)
+- Database: SQLite, IndexedDB
+- WebSocket: Flask-SocketIO
+- Authentication: Flask-Login
+- Visualization: Chart.js
+- Styling: Custom CSS
 
 ## Installation
 
@@ -56,77 +67,123 @@ HARRY is an offline web-based HTTP Archive (HAR) file analyzer with a special fo
    ...     db.create_all()
    >>> exit()
    ```
-
+5. Run the application:
+```bash
+flask run
+```  
 ## Configuration
 
-- Set environment variables:
-   ```bash
-   export SECRET_KEY='your-secure-secret-key'  # On Windows: set SECRET_KEY=your-secure-secret-key
-   ```
+Create a \`config.json\` file in the root directory to configure server settings:
 
-- Default configuration:
-  - Upload directory: `./uploads`
-  - Database: SQLite (`harry.db`)
-  - Logs directory: `./logs`
+```json
+{
+    "host": "127.0.0.1",
+    "port": 8443
+}
+```
 
-## Running the Application
+### Configuration Options
 
-- **Development server**:
-  ```bash
-  python app.py
-  ```
+#### Server Settings
+- `host`: Server address (default: 127.0.0.1)
+  - Use "0.0.0.0" to accept connections from any IP
+  - Use specific IP for restricted access
+  
+- `port`: Server port (default: 8443)
+  - Ports below 1024 require root privileges
+  - Common alternative ports: 8443, 8080, 3000
 
-- **Production deployment**:
-  - Use `gunicorn` with `eventlet` worker
-  - Set up a reverse proxy (nginx recommended)
-  - Configure SSL/TLS
+Examples:
 
-## Security Features
+Local development:
+```json
+{
+    "host": "127.0.0.1",
+    "port": 8443
+}
+```
 
-- Secure password hashing using Werkzeug
-- Per-user file isolation
-- SAML security analysis
-  - XML signature validation
-  - Certificate validation
-  - Encryption verification
-  - Security algorithm assessment
-
-## File Structure
-
-- `/static`
-  - `/js`: Frontend JavaScript modules
-  - `/css`: Styling
-- `/templates`: Jinja2 templates
-- `/uploads`: User HAR files
-- `/logs`: Application logs
-
-## Usage
-
-1. Register an account
-2. Upload HAR files through the web interface
-3. Analyze requests, responses, and SAML messages
-4. Use filters and search to find specific traffic
-5. View detailed timing information and security analysis
+Production deployment:
+```json
+{
+    "host": "0.0.0.0",
+    "port": 443
+}
+```
 
 ## Development
 
-- JavaScript modules use ES6 import/export
-- WebSocket handles real-time data streaming
-- Modular design for easy extension
-- Custom event handling for UI interactions
+The project follows a modular architecture:
 
-## License
+```
+HAR_Analyzer/
+├── app/                              # Main application package
+│   ├── __init__.py                  # App initialization, configuration, and extensions
+│   ├── models.py                    # Database models for User and HARFile
+│   ├── routes.py                    # HTTP route handlers and view functions
+│   ├── socket_events.py             # WebSocket event handlers for real-time updates
+│   ├── utils.py                     # General Python utility functions
+│   ├── static/
+│   │   ├── js/
+│   │   │   ├── analyzers/           # Analysis modules for different aspects
+│   │   │   │   ├── certificate-analyzer.js    # X.509 certificate validation and parsing
+│   │   │   │   ├── encryption-analyzer.js     # Encryption methods and strength analysis
+│   │   │   │   ├── saml-security-analyzer.js  # SAML security validation
+│   │   │   │   └── timing-analyzer.js         # Network timing and performance metrics
+│   │   │   ├── core/                # Core application functionality
+│   │   │   │   ├── common-utils.js           # Shared utility functions
+│   │   │   │   ├── har-socket-client.js      # WebSocket client implementation
+│   │   │   │   └── indexed-db-manager.js     # Client-side storage management
+│   │   │   ├── handlers/            # Event and interaction handlers
+│   │   │   │   ├── file-upload-handler.js    # HAR file upload processing
+│   │   │   │   └── request-handler.js        # HTTP request processing
+│   │   │   ├── utils/               # Specialized utility modules
+│   │   │   │   ├── saml-detector.js          # SAML request/response detection
+│   │   │   │   ├── saml-parser.js            # SAML message parsing
+│   │   │   │   └── signature-validator.js     # XML signature validation
+│   │   │   ├── visualization/       # Data visualization components
+│   │   │   │   ├── timeline-chart.js         # Request timeline charting
+│   │   │   │   └── request-detail-renderer.js # Request details HTML generation
+│   │   │   ├── bundle.js            # Main JavaScript bundle entry point
+│   │   │   ├── main.js              # Application initialization
+│   │   │   └── preload.js           # Pre-initialization and resource loading
+│   │   └── css/
+│   │       └── style.css            # Application styling and themes
+│   └── templates/                    # Jinja2 HTML templates
+│       ├── base.html                # Base template with common structure
+│       ├── login.html               # User authentication page
+│       ├── macros.html              # Reusable template components
+│       ├── processing.html          # File processing status page
+│       ├── register.html            # User registration page
+│       ├── requests.html            # Request analysis main view
+│       └── upload.html              # File upload interface
+├── migrations/                       # Database migration scripts
+│   └── versions/                    # Individual migration versions
+├── .gitignore                       # Git ignore patterns
+├── README.md                        # Project documentation
+├── requirements.txt                 # Python dependencies
+└── run.py                          # Application entry point
 
-MIT License
+```
 
 ## Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Commit changes
-4. Push to branch
-5. Create a Pull Request
+2. Create your feature branch (\`git checkout -b feature/AmazingFeature\`)
+3. Commit your changes (\`git commit -m 'Add some AmazingFeature'\`)
+4. Push to the branch (\`git push origin feature/AmazingFeature\`)
+5. Open a Pull Request
 
-## Support
+## License
 
-File issues through the GitHub issue tracker
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Author
+
+Anton Neledov - [@neledov](https://github.com/neledov)
+
+## Acknowledgments
+
+- HAR Specification Working Group
+- SAML 2.0 specifications
+- Chart.js community
