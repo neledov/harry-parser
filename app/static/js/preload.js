@@ -1,4 +1,4 @@
-import { HARSocketClient } from './websocket.js';
+import { HARSocketClient } from './core/har-socket-client.js';
 
 const initializeHarSocket = async () => {
     const requestDetail = document.getElementById('request-detail');

@@ -1,7 +1,7 @@
-import { showToast, copyToClipboard, debounce, isSuspiciousRequest } from "../utils/helpers.js";
-import { generateDetailHTML } from "../utils/html.js";
-import { generateCurlCommand } from "../utils/curl.js";
-import { createTimelineChart } from "../visualization/chart.js";
+import { showToast, copyToClipboard, debounce, isSuspiciousRequest } from "../core/common-utils.js";
+import { generateDetailHTML } from "../renderers/request-detail-renderer.js";
+import { generateCurlCommand } from "../utils/curl-command-generator.js";
+import { createTimelineChart } from "../renderers/timeline-chart.js";
 import { isSamlRequest, isSamlResponse } from "../utils/saml-detector.js";
 
 export const loadRequestDetail = async (index) => {

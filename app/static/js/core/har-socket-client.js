@@ -1,6 +1,6 @@
-import { showToast } from './utils/helpers.js';
-import { generateRequestListItem } from './utils/html.js';
-import { HarDatabase } from './utils/db.js';
+import { showToast } from '../core/common-utils.js';
+import { generateRequestListItem } from '../renderers/request-detail-renderer.js';
+import { HarDatabase } from '../core/indexed-db-manager.js';
 
 export class HARSocketClient {
     constructor() {

@@ -1,7 +1,8 @@
-import { escapeHTML, formatJSON, calculateBandwidth } from "./helpers.js";
-import { decodeSamlMessage, parseSamlXml } from "./saml.js";
-import { analyzeSamlSecurity } from "./saml-analyzer.js";
-import { analyzeRequestTiming } from "./timing-analyzer.js";
+import { escapeHTML, formatJSON, calculateBandwidth } from "../core/common-utils.js";
+import { decodeSamlMessage, parseSamlXml } from "../utils/saml-parser.js";
+import { analyzeSamlSecurity } from "../analyzers/saml-security-analyzer.js";
+import { analyzeRequestTiming } from "../analyzers/timing-analyzer.js";
+
 
 const getTimingIcon = (type) => {
   const icons = {

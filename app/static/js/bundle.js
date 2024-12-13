@@ -1,16 +1,17 @@
 // Import all utilities and handlers
-import { createTimelineChart } from './visualization/chart.js';
-import { decodeCertificate } from './utils/certificate-analyzer.js';
-import { generateCurlCommand } from './utils/curl.js';
-import { handleEncryptedAssertion } from './utils/encryption-handler.js';
-import { debounce, escapeHTML, copyToClipboard, showToast, formatJSON, clearIndexedDBCache } from './utils/helpers.js';
-import { generateDetailHTML, generateSamlSection } from './utils/html.js';
-import { analyzeSamlSecurity } from './utils/saml-analyzer.js';
+import { createTimelineChart } from './renderers/timeline-chart.js';
+import { decodeCertificate } from './analyzers/certificate-analyzer.js';
+import { generateCurlCommand } from './utils/curl-command-generator.js';
+import { handleEncryptedAssertion } from './analyzers/encryption-analyzer.js';
+import { debounce, escapeHTML, copyToClipboard, showToast, formatJSON, clearIndexedDBCache } from './core/common-utils.js';
+import { generateDetailHTML, generateSamlSection } from './renderers/request-detail-renderer.js';
+import { analyzeSamlSecurity } from './analyzers/saml-security-analyzer.js';
 import { isSamlRequest, isSamlResponse } from './utils/saml-detector.js';
-import { decodeSamlMessage, parseSamlXml } from './utils/saml.js';
+import { decodeSamlMessage, parseSamlXml } from './utils/saml-parser.js';
 import { validateXmlSignature } from './utils/signature-validator.js';
-import { loadRequestDetail, filterRequests, deleteFile, renderRequestDetail, updateSelectedRequest } from './handlers/requests.js';
-import { HarDatabase } from './utils/db.js';
+import { loadRequestDetail, filterRequests, deleteFile, renderRequestDetail, updateSelectedRequest } from './handlers/request-handler.js';
+import { HarDatabase } from './core/indexed-db-manager.js';
+
 
 // Cache container
 window.requestCache = null;

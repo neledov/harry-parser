@@ -1,5 +1,5 @@
-import { loadRequestDetail, filterRequests, deleteFile } from './handlers/requests.js';
-import { debounce } from './utils/helpers.js';
+import { loadRequestDetail, filterRequests, deleteFile } from './handlers/request-handler.js';
+import { debounce } from './core/common-utils.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize filename

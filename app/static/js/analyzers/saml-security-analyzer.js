@@ -1,5 +1,5 @@
-import { decodeCertificate } from './certificate-analyzer.js';
-import { validateXmlSignature } from './signature-validator.js';
+import { decodeCertificate } from '../analyzers/certificate-analyzer.js';
+import { validateXmlSignature } from '../utils/signature-validator.js';
 
 export const analyzeSamlSecurity = (samlData, decoded) => {
     const issues = [];
